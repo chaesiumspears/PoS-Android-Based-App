@@ -207,12 +207,14 @@ public class SignUpForm extends javax.swing.JFrame {
 
     private void button_signUpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_signUpActionPerformed
         // TODO add your handling code here:
-        String email = jTextField2.getText();
-        String name = jTextField1.getText();
-        String username = jTextField3.getText();
+        String email = jTextField2.getText().trim();
+        String name = jTextField1.getText().trim();
+        String username = jTextField3.getText().trim();
         String password = jPasswordField1.getText();
+        //format validasi usn
+        String usernameRegex = "^(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]{3,20}(?<![_.])$";
 
-        if (jPasswordField1.getText().equals(jPasswordField2.getText())) {
+        if (jPasswordField1.getText().equals(jPasswordField2.getText()) && username.matches(usernameRegex)) {
             try {
                 Connection conn = DatabaseConnection.connect();
                 if (conn != null) {
@@ -248,7 +250,11 @@ public class SignUpForm extends javax.swing.JFrame {
             }
 
         } else {
-            jLabel8.setText("The password doesn't match");
+            if (!jPasswordField1.getText().equals(jPasswordField2.getText())) {
+                jLabel8.setText("The password doesn't match");
+            } else if (!username.matches(usernameRegex)) {
+                jLabel8.setText("Username is invalid");
+            }
         }
 
     }//GEN-LAST:event_button_signUpActionPerformed
