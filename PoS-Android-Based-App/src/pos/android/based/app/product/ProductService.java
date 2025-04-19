@@ -9,6 +9,7 @@ package pos.android.based.app.product;
  * @author Desi
  */
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.*;
 import java.time.LocalDate;
@@ -37,8 +38,24 @@ public class ProductService {
     }
 
     public static boolean addPerishable(String name, double price, int stock, LocalDate expiryDate) {
-        return addGeneralProduct(name, price, stock, "perishable", expiryDate, null, null);
+    String sql = "INSERT INTO products(id, name, price, stock, type, expiry_date) VALUES (?, ?, ?, ?, ?, ?)";
+    try (Connection conn = DatabaseConnection.connect()) {
+        String id = generateProductID(conn);
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        stmt.setString(1, id);
+        stmt.setString(2, name);
+        stmt.setDouble(3, price);
+        stmt.setInt(4, stock);
+        stmt.setString(5, "perishable");
+        stmt.setDate(6, java.sql.Date.valueOf(expiryDate));
+        int result = stmt.executeUpdate();
+        return result > 0;
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
     }
+}
+
 
     public static boolean addDigital(String name, double price, int stock, URL url, String vendor) {
         return addGeneralProduct(name, price, stock, "digital", null, url.toString(), vendor);
@@ -52,7 +69,7 @@ public class ProductService {
     private static boolean addGeneralProduct(String name, double price, int stock, String type,
                                              LocalDate expiryDate, String url, String vendorName) {
         String query = "INSERT INTO products(id, name, price, stock, type, expiry_date, url, vendor_name) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+         "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.connect();
              PreparedStatement stmt = conn.prepareStatement(query)) {
 
@@ -63,14 +80,21 @@ public class ProductService {
             stmt.setDouble(3, price);
             stmt.setInt(4, stock);
             stmt.setString(5, type);
+            
             stmt.setString(6, expiryDate != null ? expiryDate.toString() : null);
-            stmt.setString(7, url);
-            stmt.setString(8, vendorName);
+             stmt.setString(7, url);
+             stmt.setString(8, vendorName);
 
-            stmt.executeUpdate();
-            return true;
+            int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected > 0) {
+            System.out.println("Product added to database successfully.");
+            } else {
+            System.out.println("No rows affected, product not added.");
+            }
+            return rowsAffected > 0;
         } catch (SQLException e) {
             System.out.println("Add product error: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
@@ -112,7 +136,7 @@ public class ProductService {
         }
     }
 
-    public static List<Product> getAllProducts() {
+    public static List<Product> getAllProducts() throws MalformedURLException {
         List<Product> products = new ArrayList<>();
         String query = "SELECT * FROM products ORDER BY id";
         try (Connection conn = DatabaseConnection.connect();
@@ -126,21 +150,11 @@ public class ProductService {
                 int stock = rs.getInt("stock");
                 String type = rs.getString("type");
 
-                Product p = switch (type) {
-                    case "perishable" -> new PerishableProduct(id, name, stock, price,
-                            LocalDate.parse(rs.getString("expiry_date")));
-                    case "digital" -> {
-                        try {
-                            yield new DigitalProduct(id, name, price,
-                                    new URL(rs.getString("url")),
-                                    rs.getString("vendor_name"));
-                        } catch (Exception e) {
-                            System.out.println("Invalid digital product data: " + e.getMessage());
-                            yield null;
-                        }
-                    }
-                    case "bundle" -> new BundleProduct(id, name, price, new ArrayList<>()); 
-                    default -> new NonPerishableProduct(id, name, price, stock);
+                 Product p = switch (type) {
+                case "perishable" -> new PerishableProduct(id, name, stock, price, LocalDate.parse(rs.getString("expiry_date")));
+                case "digital" -> new DigitalProduct(id, name, price, new URL(rs.getString("url")), rs.getString("vendor_name"));
+                case "bundle" -> new BundleProduct(id, name, price, new ArrayList<>());
+                default -> new NonPerishableProduct(id, name, price, stock);
                 };
 
                 if (p != null) products.add(p);
