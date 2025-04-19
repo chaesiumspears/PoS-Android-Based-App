@@ -212,7 +212,7 @@ public class SignUpForm extends javax.swing.JFrame {
         String username = jTextField3.getText().trim();
         String password = jPasswordField1.getText();
         //format validasi usn
-        String usernameRegex = "^(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]{3,20}(?<![_.])$";
+        String usernameRegex = "^(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]{3,20}$";
 
         if (jPasswordField1.getText().equals(jPasswordField2.getText()) && username.matches(usernameRegex)) {
             try {

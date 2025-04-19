@@ -3,7 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package pos.android.based.app.View;
-
+import pos.android.based.app.ProductForm;
 /**
  *
  * @author Asus
@@ -258,6 +258,11 @@ public class MainUI extends javax.swing.JFrame {
 
     private void productsBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_productsBtnActionPerformed
         // TODO add your handling code here:
+        ProductForm pd = new ProductForm();
+        pd.setVisible(true);
+        pd.pack();
+        pd.setLocationRelativeTo(null);
+        pd.setDefaultCloseOperation(ProductForm.EXIT_ON_CLOSE);
     }//GEN-LAST:event_productsBtnActionPerformed
 
     private void TransactionsBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TransactionsBtnActionPerformed
@@ -310,10 +315,6 @@ public class MainUI extends javax.swing.JFrame {
     private javax.swing.ButtonGroup homeBtnGroup;
     private javax.swing.JPanel homepagePanel;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JPanel jPanel7;
-    private javax.swing.JPanel jPanel8;
-    private javax.swing.JPanel jPanel9;
     private javax.swing.JPanel logoPanel;
     private javax.swing.JToggleButton logoutBtn;
     private javax.swing.JToggleButton logsBtn;

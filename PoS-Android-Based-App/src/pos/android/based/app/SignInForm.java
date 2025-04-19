@@ -4,6 +4,12 @@
  */
 package pos.android.based.app;
 
+import java.sql.Connection;
+import pos.android.based.app.View.MainUI;
+import java.sql.SQLException;
+import java.sql.PreparedStatement;
+import javax.swing.JOptionPane;
+import java.sql.ResultSet;
 /**
  *
  * @author chari
@@ -151,16 +157,36 @@ public class SignInForm extends javax.swing.JFrame {
 
     private void buttton_signInActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttton_signInActionPerformed
         // TODO add your handling code here:
-        if(jPasswordField1.getText().equals(SignUpForm.password)&&(jTextField1.getText().equals(SignUpForm.username))){
-          // go to homepage
-//        HompePage home = new HomePage();
-//        home.setVisible(true);
-//        home.pack();
-//        home.setLocationRelativeTo(null);
-//        home.setDefaultCloseOperation(SignInForm.EXIT_ON_CLOSE);  
-        }
-        else{
-            jLabel8.setText("Your password or username is invalid"); 
+        String username = jTextField1.getText().trim();
+        String password = new String(jPasswordField1.getPassword()).trim();
+
+        try {
+            Connection conn = DatabaseConnection.connect();
+            if (conn != null) {
+                String query = "SELECT * FROM users WHERE username = ? AND password = ?";
+                PreparedStatement ps = conn.prepareStatement(query);
+                ps.setString(1, username);
+                ps.setString(2, password);
+
+                ResultSet rs = ps.executeQuery();
+
+                if (rs.next()) {
+                    // go to homepage
+                    MainUI main = new MainUI();
+                    main.setVisible(true);
+                    main.pack();
+                    main.setLocationRelativeTo(null);
+                    main.setDefaultCloseOperation(MainUI.EXIT_ON_CLOSE);
+                } else {
+                    jLabel8.setText("Your password or username is invalid");
+                }
+
+                conn.close();
+            } else {
+                jLabel8.setText("Database connection failed");
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Database error: " + e.getMessage());
         }
     }//GEN-LAST:event_buttton_signInActionPerformed
 
