@@ -19,27 +19,36 @@ import pos.android.based.app.product.ProductService;
 import java.net.URL;
 import pos.android.based.app.product.Product;
 import com.toedter.calendar.JDateChooser;
+import java.net.MalformedURLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public class ProductForm extends JFrame {
 
    
-    private DefaultTableModel tableModel;
-
+  
+private DefaultTableModel tableModel;
     
 
-    public ProductForm() {
+    public ProductForm() throws MalformedURLException {
         setTitle("Product Management");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(600, 400);
         setLocationRelativeTo(null);
+        
         initComponents();
+        
+        String[] columnNames = {"ID", "Name", "Price", "Stock", "Type"};
+        tableModel = new DefaultTableModel(columnNames, 0);
+        productTable.setModel(tableModel);
+        
         loadProduct();
        
     }
     
     
-
+   
     
     /**
      * This method is called from within the constructor to initialize the form.
@@ -58,7 +67,7 @@ public class ProductForm extends JFrame {
         jDateChooser1 = new com.toedter.calendar.JDateChooser();
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        table = new javax.swing.JTable();
+        productTable = new javax.swing.JTable();
         addButton = new javax.swing.JButton();
         updateButtin = new javax.swing.JButton();
         deleteButton = new javax.swing.JButton();
@@ -91,7 +100,10 @@ public class ProductForm extends JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        table.setModel(new javax.swing.table.DefaultTableModel(
+        jPanel1.setBackground(new java.awt.Color(0, 0, 0));
+        jPanel1.setPreferredSize(new java.awt.Dimension(1280, 720));
+
+        productTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null, null},
                 {null, null, null, null, null},
@@ -102,7 +114,7 @@ public class ProductForm extends JFrame {
                 "ID", "Name", "Price", "Stock", "Type"
             }
         ));
-        jScrollPane1.setViewportView(table);
+        jScrollPane1.setViewportView(productTable);
 
         addButton.setBackground(new java.awt.Color(250, 193, 217));
         addButton.setForeground(new java.awt.Color(30, 30, 30));
@@ -121,9 +133,10 @@ public class ProductForm extends JFrame {
         deleteButton.setForeground(new java.awt.Color(30, 30, 30));
         deleteButton.setText("Delete");
 
-        productNameField.setBackground(new java.awt.Color(154, 154, 154));
+        productNameField.setEditable(false);
+        productNameField.setBackground(new java.awt.Color(204, 204, 204));
 
-        productPriceField.setBackground(new java.awt.Color(154, 154, 154));
+        productPriceField.setBackground(new java.awt.Color(204, 204, 204));
         productPriceField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 productPriceFieldActionPerformed(evt);
@@ -136,6 +149,8 @@ public class ProductForm extends JFrame {
 
         jLabel4.setText("Type");
 
+        productTypeComboBox.setBackground(new java.awt.Color(204, 204, 204));
+        productTypeComboBox.setForeground(new java.awt.Color(0, 0, 0));
         productTypeComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Perishable", "Bundle", "Non-Perishable", "Digital" }));
         productTypeComboBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -148,54 +163,55 @@ public class ProductForm extends JFrame {
 
         jLabel6.setText("Exp");
 
-        expiryDateChooser.setBackground(new java.awt.Color(154, 154, 154));
+        expiryDateChooser.setBackground(new java.awt.Color(51, 51, 51));
 
         jLabel7.setText("Stock");
 
-        productStockField.setBackground(new java.awt.Color(154, 154, 154));
+        productStockField.setBackground(new java.awt.Color(204, 204, 204));
         productStockField.setCaretColor(new java.awt.Color(154, 154, 154));
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel5)
-                .addGap(110, 110, 110))
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(36, 36, 36)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(addButton, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(updateButtin)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(deleteButton))
-                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                        .addGroup(jPanel1Layout.createSequentialGroup()
-                            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jLabel1)
-                                .addComponent(jLabel2)
-                                .addComponent(jLabel4))
-                            .addGap(24, 24, 24)
+                        .addGap(36, 36, 36)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(addButton, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(updateButtin)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(deleteButton))
                             .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                .addComponent(productPriceField)
-                                .addComponent(productNameField)
-                                .addComponent(productTypeComboBox, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                 .addGroup(jPanel1Layout.createSequentialGroup()
-                                    .addComponent(jLabel6)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(expiryDateChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGroup(jPanel1Layout.createSequentialGroup()
-                                    .addComponent(jLabel7)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                    .addComponent(productStockField, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGap(0, 0, Short.MAX_VALUE))))
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 328, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(24, Short.MAX_VALUE))
+                                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jLabel1)
+                                        .addComponent(jLabel2)
+                                        .addComponent(jLabel4))
+                                    .addGap(24, 24, 24)
+                                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                        .addComponent(productPriceField)
+                                        .addComponent(productNameField)
+                                        .addComponent(productTypeComboBox, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                            .addComponent(jLabel6)
+                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                            .addComponent(expiryDateChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                            .addComponent(jLabel7)
+                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                            .addComponent(productStockField, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addGap(0, 0, Short.MAX_VALUE))))
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 328, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(125, 125, 125)
+                        .addComponent(jLabel5)))
+                .addContainerGap(130, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -221,7 +237,7 @@ public class ProductForm extends JFrame {
                             .addComponent(jLabel6)))
                     .addComponent(expiryDateChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 269, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(addButton, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -236,22 +252,83 @@ public class ProductForm extends JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 494, Short.MAX_VALUE)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 427, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
-        // TODO add your handling code here:
+        String name = productNameField.getText();
+        double price = Double.parseDouble(productPriceField.getText());
+        int stock = Integer.parseInt(productStockField.getText());
+        String type = (String) productTypeComboBox.getSelectedItem();
+        LocalDate expiryDate = null;
+        
+        if ("Perishable".equals(type)) {
+        if (expiryDateChooser.getDate() == null) {
+        JOptionPane.showMessageDialog(this, "Please choose an expiration date.");
+        return;
+        }
+        expiryDate = expiryDateChooser.getDate().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+}
+        
+        boolean success = false;
+
+        System.out.println("ADD PERISHABLE:");
+        System.out.println("Name: " + name);
+        System.out.println("Price: " + price);
+        System.out.println("Stock: " + stock);
+        System.out.println("Type: " + type);
+        System.out.println("Expiry: " + expiryDate);
+        switch (type) {
+        case "Non-Perishable":
+            success = ProductService.addNonPerishable(name, price, stock);
+            break;
+        case "Perishable":
+            success = ProductService.addPerishable(name, price, stock, expiryDate);
+            break;
+        case "Digital":
+            try {
+                URL url = new URL("https://somevendor.com/product");
+                success = ProductService.addDigital(name, price, stock, url, "VendorX");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Invalid URL.");
+            }
+            break;
+        case "Bundle":
+            success = ProductService.addBundle(name, price, stock, 5); // Simulating bundle size
+            break;
+    }
+
+    if (success) {
+        JOptionPane.showMessageDialog(this, "Product added successfully!");
+
+   
+            try {  
+                loadProduct();
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(ProductForm.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+
+        productNameField.setText("");
+        productPriceField.setText("");
+        productStockField.setText("");
+        productTypeComboBox.setSelectedIndex(0);  
+        expiryDateChooser.setDate(null);  
+    } else {
+        JOptionPane.showMessageDialog(this, "Error adding product.");
+    }
     }//GEN-LAST:event_addButtonActionPerformed
 
     private void productPriceFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_productPriceFieldActionPerformed
@@ -292,10 +369,16 @@ public class ProductForm extends JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new ProductForm().setVisible(true);
+                try {
+                    new ProductForm().setVisible(true);
+                } catch (MalformedURLException ex) {
+                    Logger.getLogger(ProductForm.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         });
     }
+    
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addButton;
@@ -318,12 +401,12 @@ public class ProductForm extends JFrame {
     private javax.swing.JTextField productNameField;
     private javax.swing.JTextField productPriceField;
     private javax.swing.JTextField productStockField;
+    private javax.swing.JTable productTable;
     private javax.swing.JComboBox<String> productTypeComboBox;
-    private javax.swing.JTable table;
     private javax.swing.JButton updateButtin;
     // End of variables declaration//GEN-END:variables
 
- private void addProduct(ActionEvent evt) {
+ private void addProduct(ActionEvent evt) throws MalformedURLException {
     String name = productNameField.getText();
     double price = Double.parseDouble(productPriceField.getText());
     int stock = Integer.parseInt(productStockField.getText());
@@ -349,6 +432,7 @@ public class ProductForm extends JFrame {
                 success = ProductService.addDigital(name, price, stock, url, "VendorX");
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Invalid URL.");
+                ex.printStackTrace();
             }
             break;
         case "Bundle":
@@ -366,15 +450,13 @@ public class ProductForm extends JFrame {
      
      
  
-    private void loadProduct() {
-    // Initialize the table model
-    tableModel = (DefaultTableModel) table.getModel();
-    tableModel.setRowCount(0); // Clear current table data
+    private void loadProduct() throws MalformedURLException {
+    tableModel.setRowCount(0); 
 
-    // Fetch all products from ProductService
+    
     List<Product> products = ProductService.getAllProducts();
 
-    // Add each product to the table
+
     for (Product product : products) {
         tableModel.addRow(new Object[]{product.getId(), product.getName(), product.getPrice(), product.getStock(), product.getType()});
     }
