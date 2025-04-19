@@ -103,6 +103,7 @@ private DefaultTableModel tableModel;
         jPanel1.setBackground(new java.awt.Color(0, 0, 0));
         jPanel1.setPreferredSize(new java.awt.Dimension(1280, 720));
 
+        productTable.setBackground(new java.awt.Color(51, 51, 51));
         productTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null, null},
@@ -114,6 +115,9 @@ private DefaultTableModel tableModel;
                 "ID", "Name", "Price", "Stock", "Type"
             }
         ));
+        productTable.setSelectionBackground(new java.awt.Color(153, 153, 153));
+        productTable.setSelectionForeground(new java.awt.Color(153, 153, 153));
+        productTable.setShowGrid(false);
         jScrollPane1.setViewportView(productTable);
 
         addButton.setBackground(new java.awt.Color(250, 193, 217));
@@ -132,6 +136,11 @@ private DefaultTableModel tableModel;
         deleteButton.setBackground(new java.awt.Color(250, 193, 217));
         deleteButton.setForeground(new java.awt.Color(30, 30, 30));
         deleteButton.setText("Delete");
+        deleteButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteButtonActionPerformed(evt);
+            }
+        });
 
         productNameField.setEditable(false);
         productNameField.setBackground(new java.awt.Color(204, 204, 204));
@@ -143,10 +152,13 @@ private DefaultTableModel tableModel;
             }
         });
 
+        jLabel1.setForeground(new java.awt.Color(255, 255, 255));
         jLabel1.setText("Name");
 
+        jLabel2.setForeground(new java.awt.Color(255, 255, 255));
         jLabel2.setText("Price");
 
+        jLabel4.setForeground(new java.awt.Color(255, 255, 255));
         jLabel4.setText("Type");
 
         productTypeComboBox.setBackground(new java.awt.Color(204, 204, 204));
@@ -159,12 +171,16 @@ private DefaultTableModel tableModel;
         });
 
         jLabel5.setFont(new java.awt.Font("Segoe UI", 0, 15)); // NOI18N
+        jLabel5.setForeground(new java.awt.Color(255, 255, 255));
         jLabel5.setText("Product Management");
 
+        jLabel6.setForeground(new java.awt.Color(255, 255, 255));
         jLabel6.setText("Exp");
 
-        expiryDateChooser.setBackground(new java.awt.Color(51, 51, 51));
+        expiryDateChooser.setBackground(new java.awt.Color(153, 153, 153));
+        expiryDateChooser.setForeground(new java.awt.Color(0, 0, 0));
 
+        jLabel7.setForeground(new java.awt.Color(255, 255, 255));
         jLabel7.setText("Stock");
 
         productStockField.setBackground(new java.awt.Color(204, 204, 204));
@@ -266,7 +282,7 @@ private DefaultTableModel tableModel;
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    
+    //tombol add product
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
         String name = productNameField.getText();
         double price = Double.parseDouble(productPriceField.getText());
@@ -329,6 +345,7 @@ private DefaultTableModel tableModel;
     } else {
         JOptionPane.showMessageDialog(this, "Error adding product.");
     }
+    
     }//GEN-LAST:event_addButtonActionPerformed
 
     private void productPriceFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_productPriceFieldActionPerformed
@@ -338,6 +355,18 @@ private DefaultTableModel tableModel;
     private void productTypeComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_productTypeComboBoxActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_productTypeComboBoxActionPerformed
+
+    private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
+        // TODO add your handling code here:
+        try {
+        deleteProduct(evt);
+        } catch (MalformedURLException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this, "Error deleting product: " + e.getMessage());
+        }
+    }//GEN-LAST:event_deleteButtonActionPerformed
+
+  
 
     /**
      * @param args the command line arguments
@@ -406,6 +435,7 @@ private DefaultTableModel tableModel;
     private javax.swing.JButton updateButtin;
     // End of variables declaration//GEN-END:variables
 
+//menambahkan produk
  private void addProduct(ActionEvent evt) throws MalformedURLException {
     String name = productNameField.getText();
     double price = Double.parseDouble(productPriceField.getText());
@@ -447,6 +477,27 @@ private DefaultTableModel tableModel;
         JOptionPane.showMessageDialog(this, "Error adding product.");
     }
 }
+ 
+ private void deleteProduct (ActionEvent evt) throws MalformedURLException {
+    int selectedRow = productTable.getSelectedRow();
+    if (selectedRow == -1) {
+        JOptionPane.showMessageDialog(this, "Please select a product to delete.");
+        return;
+    }
+
+    String productId = (String) productTable.getValueAt(selectedRow, 0); // kolom ID
+    int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this product?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
+
+    if (confirm == JOptionPane.YES_OPTION) {
+        boolean success = ProductService.deleteProduct(productId);
+        if (success) {
+            JOptionPane.showMessageDialog(this, "Product deleted successfully!");
+            loadProduct();
+        } else {
+            JOptionPane.showMessageDialog(this, "Failed to delete product.");
+        }
+    }
+ }
      
      
  
