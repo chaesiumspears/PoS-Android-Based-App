@@ -122,18 +122,15 @@ public class ProductService {
  
 
     public static boolean deleteProduct(String id) {
-        String query = "DELETE FROM products WHERE id = ?";
-        try (Connection conn = DatabaseConnection.connect();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-
-            stmt.setString(1, id);
-            int rows = stmt.executeUpdate();
-
-            return rows > 0;
-        } catch (SQLException e) {
-            System.out.println("Delete error: " + e.getMessage());
-            return false;
-        }
+        String sql = "DELETE FROM products WHERE id = ?";
+    try (Connection conn = DatabaseConnection.connect();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setString(1, id);
+        return stmt.executeUpdate() > 0;
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
+    }
     }
 
     public static List<Product> getAllProducts() throws MalformedURLException {
