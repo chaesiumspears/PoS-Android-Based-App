@@ -15,12 +15,12 @@ public class Product {
     public Integer stock;
     public String type;
 
-    // Constructor default untuk NonPerishable
+   
     public Product(String id, String name, Integer stock, double price) {
         this(id, name, stock, price, "non");
     }
 
-    // Constructor lengkap
+ 
     public Product(String id, String name, Integer stock, double price, String type) {
         this.id = id;
         this.name = name;
@@ -29,7 +29,7 @@ public class Product {
         this.type = type;
     }
 
-    // Constructor jika stock tidak dibutuhkan (misal digital)
+
     public Product(String id, String name, double price, String type) {
         this(id, name, null, price, type);
     }
