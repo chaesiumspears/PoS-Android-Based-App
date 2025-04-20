@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import javax.swing.JOptionPane;
 import java.sql.ResultSet;
+
 /**
  *
  * @author chari
@@ -147,12 +148,14 @@ public class SignInForm extends javax.swing.JFrame {
                 ResultSet rs = ps.executeQuery();
 
                 if (rs.next()) {
-                    // go to homepage
-                    MainUI main = new MainUI();
+                    // ke homepage
+                    MainUI main = new MainUI(username);
                     main.setVisible(true);
                     main.pack();
                     main.setLocationRelativeTo(null);
                     main.setDefaultCloseOperation(MainUI.EXIT_ON_CLOSE);
+                    this.dispose();
+                    
                 } else {
                     jLabel8.setText("Your password or username is invalid");
                 }

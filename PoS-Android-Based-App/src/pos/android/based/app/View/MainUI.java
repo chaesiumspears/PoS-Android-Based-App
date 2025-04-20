@@ -3,7 +3,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package pos.android.based.app.View;
+
 import pos.android.based.app.ProductForm;
+
 /**
  *
  * @author Asus
@@ -13,7 +15,10 @@ public class MainUI extends javax.swing.JFrame {
     /**
      * Creates new form MainUI
      */
-    public MainUI() {
+    private String loggedInUsername;
+
+    public MainUI(String username) {
+        this.loggedInUsername = username;
         initComponents();
     }
 
@@ -280,7 +285,7 @@ public class MainUI extends javax.swing.JFrame {
 
     private void usersBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_usersBtnActionPerformed
         // TODO add your handling code here:
-        UserForm us = new UserForm();
+        UserForm us = new UserForm(loggedInUsername);
         us.setVisible(true);
         us.pack();
         us.setLocationRelativeTo(null);
