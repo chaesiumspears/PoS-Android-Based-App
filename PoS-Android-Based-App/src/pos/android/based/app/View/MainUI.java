@@ -111,6 +111,11 @@ public class MainUI extends javax.swing.JFrame {
         usersBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         usersBtn.setDebugGraphicsOptions(javax.swing.DebugGraphics.FLASH_OPTION);
         usersBtn.setPreferredSize(new java.awt.Dimension(100, 70));
+        usersBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                usersBtnActionPerformed(evt);
+            }
+        });
         sidebarContainer.add(usersBtn);
 
         logsBtn.setBackground(new java.awt.Color(51, 51, 51));
@@ -272,6 +277,15 @@ public class MainUI extends javax.swing.JFrame {
     private void homeBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_homeBtnActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_homeBtnActionPerformed
+
+    private void usersBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_usersBtnActionPerformed
+        // TODO add your handling code here:
+        UserForm us = new UserForm();
+        us.setVisible(true);
+        us.pack();
+        us.setLocationRelativeTo(null);
+        us.setDefaultCloseOperation(ProductForm.EXIT_ON_CLOSE);
+    }//GEN-LAST:event_usersBtnActionPerformed
 
     /**
      * @param args the command line arguments

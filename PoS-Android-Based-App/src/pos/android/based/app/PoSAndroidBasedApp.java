@@ -15,11 +15,11 @@ public class PoSAndroidBasedApp {
      */
     public static void main(String[] args) {
         // TODO code application logic here
-        SignUpForm signUp = new SignUpForm();
-        signUp.setVisible(true);
-        signUp.pack();
-        signUp.setLocationRelativeTo(null);
-        signUp.setDefaultCloseOperation(SignUpForm.EXIT_ON_CLOSE);
+        SignInForm signIn = new SignInForm();
+        signIn.setVisible(true);
+        signIn.pack();
+        signIn.setLocationRelativeTo(null);
+        signIn.setDefaultCloseOperation(SignInForm.EXIT_ON_CLOSE);
     }
     
 }
