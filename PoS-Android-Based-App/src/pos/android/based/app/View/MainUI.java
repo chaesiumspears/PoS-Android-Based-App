@@ -63,10 +63,10 @@ public class MainUI extends javax.swing.JFrame {
         homepagePanel.add(jLabel1);
         jLabel1.setBounds(40, 30, 220, 58);
 
-        homeBtn.setBackground(new java.awt.Color(251, 193, 217));
+        homeBtn.setBackground(new java.awt.Color(70, 73, 75));
         homeBtnGroup.add(homeBtn);
         homeBtn.setFont(new java.awt.Font("Segoe UI", 1, 16)); // NOI18N
-        homeBtn.setForeground(new java.awt.Color(51, 51, 51));
+        homeBtn.setForeground(new java.awt.Color(251, 193, 217));
         homeBtn.setText("Home");
         homeBtn.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         homeBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
@@ -129,7 +129,7 @@ public class MainUI extends javax.swing.JFrame {
             }
         });
         homepagePanel.add(usersBtn);
-        usersBtn.setBounds(80, 310, 130, 90);
+        usersBtn.setBounds(260, 310, 130, 90);
 
         ManageBtn.setBackground(new java.awt.Color(51, 51, 51));
         homeBtnGroup.add(ManageBtn);
@@ -146,12 +146,12 @@ public class MainUI extends javax.swing.JFrame {
             }
         });
         homepagePanel.add(ManageBtn);
-        ManageBtn.setBounds(260, 310, 130, 90);
+        ManageBtn.setBounds(80, 310, 130, 90);
 
-        logoutBtn.setBackground(new java.awt.Color(51, 51, 51));
+        logoutBtn.setBackground(new java.awt.Color(111, 29, 29));
         homeBtnGroup.add(logoutBtn);
         logoutBtn.setFont(new java.awt.Font("Segoe UI", 1, 16)); // NOI18N
-        logoutBtn.setForeground(new java.awt.Color(251, 193, 217));
+        logoutBtn.setForeground(new java.awt.Color(255, 255, 255));
         logoutBtn.setText("Logout");
         logoutBtn.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         logoutBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
@@ -199,6 +199,7 @@ public class MainUI extends javax.swing.JFrame {
         mu.pack();
         mu.setLocationRelativeTo(null);
         mu.setDefaultCloseOperation(ProductForm.EXIT_ON_CLOSE);
+        this.dispose();
     }//GEN-LAST:event_ManageBtnActionPerformed
 
     /**
