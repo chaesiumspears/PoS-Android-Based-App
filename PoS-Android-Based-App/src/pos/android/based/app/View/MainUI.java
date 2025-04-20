@@ -16,10 +16,16 @@ public class MainUI extends javax.swing.JFrame {
      * Creates new form MainUI
      */
     private String loggedInUsername;
+    private String userRole;
 
-    public MainUI(String username) {
+    public MainUI(String username,String role) {
         this.loggedInUsername = username;
+        this.userRole = role;
         initComponents();
+        
+        if (userRole.equalsIgnoreCase("admin")) {
+            ManageBtn.setVisible(false);
+        }
     }
 
     /**
@@ -33,31 +39,29 @@ public class MainUI extends javax.swing.JFrame {
 
         homeBtnGroup = new javax.swing.ButtonGroup();
         homepagePanel = new javax.swing.JPanel();
-        sidebarContainer = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
         homeBtn = new javax.swing.JToggleButton();
         productsBtn = new javax.swing.JToggleButton();
         TransactionsBtn = new javax.swing.JToggleButton();
         usersBtn = new javax.swing.JToggleButton();
-        logsBtn = new javax.swing.JToggleButton();
+        ManageBtn = new javax.swing.JToggleButton();
         logoutBtn = new javax.swing.JToggleButton();
-        dashboardPanel = new javax.swing.JPanel();
-        paneldb1 = new javax.swing.JPanel();
-        paneldb2 = new javax.swing.JPanel();
-        paneldb3 = new javax.swing.JPanel();
-        paneldb4 = new javax.swing.JPanel();
-        logoPanel = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setMinimumSize(new java.awt.Dimension(1280, 720));
         setPreferredSize(new java.awt.Dimension(1280, 720));
+        getContentPane().setLayout(null);
 
         homepagePanel.setBackground(new java.awt.Color(0, 0, 0));
         homepagePanel.setMinimumSize(new java.awt.Dimension(1280, 720));
-        homepagePanel.setPreferredSize(new java.awt.Dimension(1280, 720));
+        homepagePanel.setPreferredSize(new java.awt.Dimension(660, 560));
         homepagePanel.setLayout(null);
 
-        sidebarContainer.setBackground(new java.awt.Color(0, 0, 0));
+        jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
+        jLabel1.setForeground(new java.awt.Color(250, 193, 217));
+        jLabel1.setText("SETUJU POS");
+        homepagePanel.add(jLabel1);
+        jLabel1.setBounds(40, 30, 220, 58);
 
         homeBtn.setBackground(new java.awt.Color(251, 193, 217));
         homeBtnGroup.add(homeBtn);
@@ -73,7 +77,8 @@ public class MainUI extends javax.swing.JFrame {
                 homeBtnActionPerformed(evt);
             }
         });
-        sidebarContainer.add(homeBtn);
+        homepagePanel.add(homeBtn);
+        homeBtn.setBounds(80, 180, 130, 90);
 
         productsBtn.setBackground(new java.awt.Color(51, 51, 51));
         homeBtnGroup.add(productsBtn);
@@ -89,7 +94,8 @@ public class MainUI extends javax.swing.JFrame {
                 productsBtnActionPerformed(evt);
             }
         });
-        sidebarContainer.add(productsBtn);
+        homepagePanel.add(productsBtn);
+        productsBtn.setBounds(260, 180, 130, 90);
 
         TransactionsBtn.setBackground(new java.awt.Color(51, 51, 51));
         homeBtnGroup.add(TransactionsBtn);
@@ -105,7 +111,8 @@ public class MainUI extends javax.swing.JFrame {
                 TransactionsBtnActionPerformed(evt);
             }
         });
-        sidebarContainer.add(TransactionsBtn);
+        homepagePanel.add(TransactionsBtn);
+        TransactionsBtn.setBounds(440, 180, 130, 90);
 
         usersBtn.setBackground(new java.awt.Color(51, 51, 51));
         homeBtnGroup.add(usersBtn);
@@ -121,18 +128,25 @@ public class MainUI extends javax.swing.JFrame {
                 usersBtnActionPerformed(evt);
             }
         });
-        sidebarContainer.add(usersBtn);
+        homepagePanel.add(usersBtn);
+        usersBtn.setBounds(80, 310, 130, 90);
 
-        logsBtn.setBackground(new java.awt.Color(51, 51, 51));
-        homeBtnGroup.add(logsBtn);
-        logsBtn.setFont(new java.awt.Font("Segoe UI", 1, 16)); // NOI18N
-        logsBtn.setForeground(new java.awt.Color(251, 193, 217));
-        logsBtn.setText("Logs");
-        logsBtn.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-        logsBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        logsBtn.setDebugGraphicsOptions(javax.swing.DebugGraphics.FLASH_OPTION);
-        logsBtn.setPreferredSize(new java.awt.Dimension(100, 70));
-        sidebarContainer.add(logsBtn);
+        ManageBtn.setBackground(new java.awt.Color(51, 51, 51));
+        homeBtnGroup.add(ManageBtn);
+        ManageBtn.setFont(new java.awt.Font("Segoe UI", 1, 16)); // NOI18N
+        ManageBtn.setForeground(new java.awt.Color(251, 193, 217));
+        ManageBtn.setText("Manage User");
+        ManageBtn.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        ManageBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        ManageBtn.setDebugGraphicsOptions(javax.swing.DebugGraphics.FLASH_OPTION);
+        ManageBtn.setPreferredSize(new java.awt.Dimension(100, 70));
+        ManageBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ManageBtnActionPerformed(evt);
+            }
+        });
+        homepagePanel.add(ManageBtn);
+        ManageBtn.setBounds(260, 310, 130, 90);
 
         logoutBtn.setBackground(new java.awt.Color(51, 51, 51));
         homeBtnGroup.add(logoutBtn);
@@ -143,125 +157,11 @@ public class MainUI extends javax.swing.JFrame {
         logoutBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         logoutBtn.setDebugGraphicsOptions(javax.swing.DebugGraphics.FLASH_OPTION);
         logoutBtn.setPreferredSize(new java.awt.Dimension(100, 70));
-        sidebarContainer.add(logoutBtn);
+        homepagePanel.add(logoutBtn);
+        logoutBtn.setBounds(440, 310, 130, 90);
 
-        homepagePanel.add(sidebarContainer);
-        sidebarContainer.setBounds(60, 110, 130, 460);
-
-        dashboardPanel.setBackground(new java.awt.Color(0, 0, 0));
-        dashboardPanel.setPreferredSize(new java.awt.Dimension(72, 72));
-
-        paneldb1.setBackground(new java.awt.Color(51, 51, 51));
-        paneldb1.setForeground(new java.awt.Color(250, 250, 250));
-        paneldb1.setPreferredSize(new java.awt.Dimension(400, 150));
-
-        javax.swing.GroupLayout paneldb1Layout = new javax.swing.GroupLayout(paneldb1);
-        paneldb1.setLayout(paneldb1Layout);
-        paneldb1Layout.setHorizontalGroup(
-            paneldb1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
-        );
-        paneldb1Layout.setVerticalGroup(
-            paneldb1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 150, Short.MAX_VALUE)
-        );
-
-        dashboardPanel.add(paneldb1);
-
-        paneldb2.setBackground(new java.awt.Color(51, 51, 51));
-        paneldb2.setForeground(new java.awt.Color(250, 250, 250));
-        paneldb2.setPreferredSize(new java.awt.Dimension(400, 150));
-
-        javax.swing.GroupLayout paneldb2Layout = new javax.swing.GroupLayout(paneldb2);
-        paneldb2.setLayout(paneldb2Layout);
-        paneldb2Layout.setHorizontalGroup(
-            paneldb2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
-        );
-        paneldb2Layout.setVerticalGroup(
-            paneldb2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 150, Short.MAX_VALUE)
-        );
-
-        dashboardPanel.add(paneldb2);
-
-        paneldb3.setBackground(new java.awt.Color(51, 51, 51));
-        paneldb3.setForeground(new java.awt.Color(250, 250, 250));
-        paneldb3.setPreferredSize(new java.awt.Dimension(400, 150));
-
-        javax.swing.GroupLayout paneldb3Layout = new javax.swing.GroupLayout(paneldb3);
-        paneldb3.setLayout(paneldb3Layout);
-        paneldb3Layout.setHorizontalGroup(
-            paneldb3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
-        );
-        paneldb3Layout.setVerticalGroup(
-            paneldb3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 150, Short.MAX_VALUE)
-        );
-
-        dashboardPanel.add(paneldb3);
-
-        paneldb4.setBackground(new java.awt.Color(51, 51, 51));
-        paneldb4.setForeground(new java.awt.Color(250, 250, 250));
-        paneldb4.setPreferredSize(new java.awt.Dimension(400, 150));
-
-        javax.swing.GroupLayout paneldb4Layout = new javax.swing.GroupLayout(paneldb4);
-        paneldb4.setLayout(paneldb4Layout);
-        paneldb4Layout.setHorizontalGroup(
-            paneldb4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
-        );
-        paneldb4Layout.setVerticalGroup(
-            paneldb4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 150, Short.MAX_VALUE)
-        );
-
-        dashboardPanel.add(paneldb4);
-
-        homepagePanel.add(dashboardPanel);
-        dashboardPanel.setBounds(180, 40, 530, 670);
-
-        logoPanel.setBackground(new java.awt.Color(0, 0, 0));
-
-        jLabel1.setFont(new java.awt.Font("Onyx", 0, 36)); // NOI18N
-        jLabel1.setForeground(new java.awt.Color(250, 193, 217));
-        jLabel1.setText("SETUJU POS");
-
-        javax.swing.GroupLayout logoPanelLayout = new javax.swing.GroupLayout(logoPanel);
-        logoPanel.setLayout(logoPanelLayout);
-        logoPanelLayout.setHorizontalGroup(
-            logoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, logoPanelLayout.createSequentialGroup()
-                .addGap(0, 12, Short.MAX_VALUE)
-                .addComponent(jLabel1))
-        );
-        logoPanelLayout.setVerticalGroup(
-            logoPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(logoPanelLayout.createSequentialGroup()
-                .addGap(16, 16, 16)
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(16, Short.MAX_VALUE))
-        );
-
-        homepagePanel.add(logoPanel);
-        logoPanel.setBounds(60, 10, 120, 90);
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(homepagePanel, javax.swing.GroupLayout.PREFERRED_SIZE, 1280, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(homepagePanel, javax.swing.GroupLayout.PREFERRED_SIZE, 720, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-        );
+        getContentPane().add(homepagePanel);
+        homepagePanel.setBounds(0, 0, 660, 560);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -291,6 +191,15 @@ public class MainUI extends javax.swing.JFrame {
         us.setLocationRelativeTo(null);
         us.setDefaultCloseOperation(ProductForm.EXIT_ON_CLOSE);
     }//GEN-LAST:event_usersBtnActionPerformed
+
+    private void ManageBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ManageBtnActionPerformed
+        // TODO add your handling code here:
+        ManageUserForm mu = new ManageUserForm();
+        mu.setVisible(true);
+        mu.pack();
+        mu.setLocationRelativeTo(null);
+        mu.setDefaultCloseOperation(ProductForm.EXIT_ON_CLOSE);
+    }//GEN-LAST:event_ManageBtnActionPerformed
 
     /**
      * @param args the command line arguments
@@ -328,21 +237,14 @@ public class MainUI extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JToggleButton ManageBtn;
     private javax.swing.JToggleButton TransactionsBtn;
-    private javax.swing.JPanel dashboardPanel;
     private javax.swing.JToggleButton homeBtn;
     private javax.swing.ButtonGroup homeBtnGroup;
     private javax.swing.JPanel homepagePanel;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JPanel logoPanel;
     private javax.swing.JToggleButton logoutBtn;
-    private javax.swing.JToggleButton logsBtn;
-    private javax.swing.JPanel paneldb1;
-    private javax.swing.JPanel paneldb2;
-    private javax.swing.JPanel paneldb3;
-    private javax.swing.JPanel paneldb4;
     private javax.swing.JToggleButton productsBtn;
-    private javax.swing.JPanel sidebarContainer;
     private javax.swing.JToggleButton usersBtn;
     // End of variables declaration//GEN-END:variables
 }

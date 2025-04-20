@@ -146,10 +146,11 @@ public class SignInForm extends javax.swing.JFrame {
                 ps.setString(2, password);
 
                 ResultSet rs = ps.executeQuery();
-
+                
                 if (rs.next()) {
+                    String role = rs.getString("role"); 
                     // ke homepage
-                    MainUI main = new MainUI(username);
+                    MainUI main = new MainUI(username,role);
                     main.setVisible(true);
                     main.pack();
                     main.setLocationRelativeTo(null);
