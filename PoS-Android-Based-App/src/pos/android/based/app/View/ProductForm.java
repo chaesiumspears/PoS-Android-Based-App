@@ -23,7 +23,6 @@ import java.net.MalformedURLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
 public class ProductForm extends JFrame {
  
 private DefaultTableModel tableModel;
@@ -42,9 +41,7 @@ private DefaultTableModel tableModel;
        
     }
     
-  
-    
- //TAMBAH PRODUK
+    //TAMBAH PRODUK
  private void addProduct(ActionEvent evt) throws MalformedURLException {
     String name = productNameField.getText();
     double price = Double.parseDouble(productPriceField.getText());
@@ -79,8 +76,7 @@ private DefaultTableModel tableModel;
         JOptionPane.showMessageDialog(this, "Error adding product.");
     }
 }
- 
-    //hapus product
+ //hapus product
     private void deleteProduct (ActionEvent evt) throws MalformedURLException {
     int selectedRow = productTable.getSelectedRow();
     if (selectedRow == -1) {
@@ -99,7 +95,7 @@ private DefaultTableModel tableModel;
         }
     }
  }
-
+    
     //update product
     private void updateProduct(ActionEvent evt) throws MalformedURLException {
     int selectedRow = productTable.getSelectedRow();
@@ -148,7 +144,7 @@ private DefaultTableModel tableModel;
         JOptionPane.showMessageDialog(this, "Failed to update product.");
     }   
     }
-
+    
     //jdialog
     private void openBundleDialog() throws MalformedURLException {
     String input = JOptionPane.showInputDialog(this, "Masukkan jumlah produk untuk bundle:");
@@ -231,15 +227,6 @@ private DefaultTableModel tableModel;
 }
 
 
-
-
-
-
-     
-     
- 
-    
-    
    
     
     /**
@@ -256,12 +243,11 @@ private DefaultTableModel tableModel;
         jScrollPane3 = new javax.swing.JScrollPane();
         jLabel3 = new javax.swing.JLabel();
         jComboBox2 = new javax.swing.JComboBox<>();
-        jDateChooser1 = new com.toedter.calendar.JDateChooser();
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         productTable = new javax.swing.JTable();
         addButton = new javax.swing.JButton();
-        updateButton = new javax.swing.JButton();
+        updateButtpn = new javax.swing.JButton();
         deleteButton = new javax.swing.JButton();
         productNameField = new javax.swing.JTextField();
         productPriceField = new javax.swing.JTextField();
@@ -271,14 +257,14 @@ private DefaultTableModel tableModel;
         productTypeComboBox = new javax.swing.JComboBox<>();
         jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
-        expiryDateChooser = new com.toedter.calendar.JDateChooser();
         jLabel7 = new javax.swing.JLabel();
         productStockField = new javax.swing.JTextField();
-        addToBundleButton = new javax.swing.JButton();
-        jLabel8 = new javax.swing.JLabel();
-        jLabel9 = new javax.swing.JLabel();
+        expiryDateChooser = new com.toedter.calendar.JDateChooser();
         urlField = new javax.swing.JTextField();
         vendorField = new javax.swing.JTextField();
+        jLabel8 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
+        addToBundleButton = new javax.swing.JButton();
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -298,11 +284,9 @@ private DefaultTableModel tableModel;
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jPanel1.setBackground(new java.awt.Color(0, 0, 0));
-        jPanel1.setForeground(new java.awt.Color(0, 0, 0));
         jPanel1.setPreferredSize(new java.awt.Dimension(1280, 720));
 
-        productTable.setBackground(new java.awt.Color(153, 153, 153));
-        productTable.setForeground(new java.awt.Color(0, 0, 0));
+        productTable.setBackground(new java.awt.Color(204, 204, 204));
         productTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null, null},
@@ -328,12 +312,12 @@ private DefaultTableModel tableModel;
             }
         });
 
-        updateButton.setBackground(new java.awt.Color(250, 193, 217));
-        updateButton.setForeground(new java.awt.Color(30, 30, 30));
-        updateButton.setText("Update");
-        updateButton.addActionListener(new java.awt.event.ActionListener() {
+        updateButtpn.setBackground(new java.awt.Color(250, 193, 217));
+        updateButtpn.setForeground(new java.awt.Color(30, 30, 30));
+        updateButtpn.setText("Update");
+        updateButtpn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                updateButtonActionPerformed(evt);
+                updateButtpnActionPerformed(evt);
             }
         });
 
@@ -346,12 +330,8 @@ private DefaultTableModel tableModel;
             }
         });
 
+        productNameField.setEditable(false);
         productNameField.setBackground(new java.awt.Color(204, 204, 204));
-        productNameField.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                productNameFieldActionPerformed(evt);
-            }
-        });
 
         productPriceField.setBackground(new java.awt.Color(204, 204, 204));
         productPriceField.addActionListener(new java.awt.event.ActionListener() {
@@ -360,15 +340,12 @@ private DefaultTableModel tableModel;
             }
         });
 
-        jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabel1.setForeground(new java.awt.Color(255, 255, 255));
         jLabel1.setText("Name");
 
-        jLabel2.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabel2.setForeground(new java.awt.Color(255, 255, 255));
         jLabel2.setText("Price");
 
-        jLabel4.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabel4.setForeground(new java.awt.Color(255, 255, 255));
         jLabel4.setText("Type");
 
@@ -381,23 +358,32 @@ private DefaultTableModel tableModel;
             }
         });
 
-        jLabel5.setFont(new java.awt.Font("Segoe UI", 3, 20)); // NOI18N
+        jLabel5.setFont(new java.awt.Font("Segoe UI", 0, 15)); // NOI18N
         jLabel5.setForeground(new java.awt.Color(255, 255, 255));
         jLabel5.setText("Product Management");
 
-        jLabel6.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabel6.setForeground(new java.awt.Color(255, 255, 255));
         jLabel6.setText("Exp");
 
-        expiryDateChooser.setBackground(new java.awt.Color(153, 153, 153));
-        expiryDateChooser.setForeground(new java.awt.Color(0, 0, 0));
-
-        jLabel7.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabel7.setForeground(new java.awt.Color(255, 255, 255));
         jLabel7.setText("Stock");
 
         productStockField.setBackground(new java.awt.Color(204, 204, 204));
         productStockField.setCaretColor(new java.awt.Color(154, 154, 154));
+
+        expiryDateChooser.setForeground(new java.awt.Color(0, 0, 0));
+
+        urlField.setBackground(new java.awt.Color(204, 204, 204));
+        urlField.setForeground(new java.awt.Color(0, 0, 0));
+
+        vendorField.setBackground(new java.awt.Color(204, 204, 204));
+        vendorField.setForeground(new java.awt.Color(0, 0, 0));
+
+        jLabel8.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel8.setText("URL");
+
+        jLabel9.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel9.setText("Vendor");
 
         addToBundleButton.setBackground(new java.awt.Color(250, 193, 217));
         addToBundleButton.setForeground(new java.awt.Color(0, 0, 0));
@@ -408,109 +394,104 @@ private DefaultTableModel tableModel;
             }
         });
 
-        jLabel8.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabel8.setText("URL");
-
-        jLabel9.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jLabel9.setText("Vendor");
-
-        urlField.setBackground(new java.awt.Color(204, 204, 204));
-        urlField.setForeground(new java.awt.Color(0, 0, 0));
-
-        vendorField.setBackground(new java.awt.Color(204, 204, 204));
-        vendorField.setForeground(new java.awt.Color(0, 0, 0));
-
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(450, 450, 450)
-                        .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 207, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(45, 45, 45)
-                        .addComponent(addButton, javax.swing.GroupLayout.PREFERRED_SIZE, 85, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(updateButton)
-                        .addGap(18, 18, 18)
-                        .addComponent(deleteButton)
-                        .addGap(32, 32, 32)
-                        .addComponent(addToBundleButton))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(36, 36, 36)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGap(36, 36, 36)
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel2)
-                                    .addComponent(jLabel1))
-                                .addGap(27, 27, 27)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(productNameField, javax.swing.GroupLayout.PREFERRED_SIZE, 197, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(productPriceField, javax.swing.GroupLayout.PREFERRED_SIZE, 197, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(70, 70, 70)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                     .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(productStockField, javax.swing.GroupLayout.PREFERRED_SIZE, 192, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addComponent(jLabel4)
+                                        .addGap(12, 12, 12)
+                                        .addComponent(addButton, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addGap(18, 18, 18)
-                                        .addComponent(productTypeComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 197, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                .addGap(41, 41, 41)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(updateButtpn)
+                                        .addGap(18, 18, 18)
+                                        .addComponent(deleteButton))
                                     .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addComponent(jLabel8)
-                                        .addGap(30, 30, 30)
-                                        .addComponent(urlField, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(0, 0, Short.MAX_VALUE))
-                                    .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addComponent(jLabel9)
+                                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(jLabel1)
+                                            .addComponent(jLabel2)
+                                            .addComponent(jLabel4))
+                                        .addGap(24, 24, 24)
+                                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                            .addComponent(productPriceField)
+                                            .addComponent(productNameField)
+                                            .addComponent(productTypeComboBox, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addGap(50, 50, 50)
+                                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(jLabel7)
+                                            .addComponent(jLabel9)
+                                            .addComponent(jLabel8))
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                        .addComponent(vendorField, javax.swing.GroupLayout.PREFERRED_SIZE, 157, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                            .addComponent(vendorField)
+                                            .addComponent(urlField)
+                                            .addComponent(productStockField, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addGap(36, 36, 36)
                                         .addComponent(jLabel6)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                        .addComponent(expiryDateChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 1041, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(203, Short.MAX_VALUE))
+                                        .addGap(18, 18, 18)
+                                        .addComponent(expiryDateChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGap(125, 125, 125)
+                                .addComponent(jLabel5)))
+                        .addGap(0, 73, Short.MAX_VALUE)))
+                .addContainerGap())
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(107, 107, 107)
+                .addComponent(addToBundleButton)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addGap(32, 32, 32)
-                .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(31, 31, 31)
+                .addContainerGap()
+                .addComponent(jLabel5)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(productNameField, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel1))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(productPriceField, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel2)
+                                    .addComponent(jLabel6))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(productTypeComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel4)))
+                            .addComponent(expiryDateChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(productStockField, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel7))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(urlField, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel8))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(vendorField, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel9))))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 330, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(productNameField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1)
-                    .addComponent(jLabel4)
-                    .addComponent(productTypeComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel8)
-                    .addComponent(urlField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(addButton, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(updateButtpn, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(deleteButton, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jLabel2)
-                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(productPriceField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel7)
-                        .addComponent(productStockField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel9)
-                        .addComponent(jLabel6)
-                        .addComponent(vendorField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(expiryDateChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 17, Short.MAX_VALUE)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(addButton)
-                    .addComponent(updateButton, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(deleteButton, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(addToBundleButton)))
-                .addGap(64, 64, 64))
+                .addComponent(addToBundleButton)
+                .addContainerGap(41, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -519,15 +500,15 @@ private DefaultTableModel tableModel;
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(802, Short.MAX_VALUE))
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 660, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 550, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(15, Short.MAX_VALUE))
         );
 
         pack();
@@ -568,21 +549,18 @@ private DefaultTableModel tableModel;
             break;
         case "Digital":
             try {
-                String urlStr = urlField.getText().trim();
-                String vendor = vendorField.getText().trim();
-                if (urlStr.isEmpty() || vendor.isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "URL dan Vendor harus diisi untuk produk digital.");
-                return;
-                }
-                URL url = new URL(urlStr);
-                success = ProductService.addDigital(name, price, stock, url, vendor);
-            } catch (MalformedURLException e) {
-                JOptionPane.showMessageDialog(this, "Format URL tidak valid.");
-                return;
-            }
-            break;
-        case "Bundle":
-             
+        String urlStr = urlField.getText().trim();
+        String vendor = vendorField.getText().trim();
+        if (urlStr.isEmpty() || vendor.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "URL dan Vendor harus diisi untuk produk digital.");
+            return;
+        }
+        URL url = new URL(urlStr);
+        success = ProductService.addDigital(name, price, stock, url, vendor);
+    } catch (MalformedURLException e) {
+        JOptionPane.showMessageDialog(this, "Format URL tidak valid.");
+        return;
+    }
             break;
     }
     if (success) {
@@ -592,23 +570,24 @@ private DefaultTableModel tableModel;
             } catch (MalformedURLException ex) {
                 Logger.getLogger(ProductForm.class.getName()).log(Level.SEVERE, null, ex);
             }
-        productNameField.setText("");
+           productNameField.setText("");
         productPriceField.setText("");
         productStockField.setText("");
-        productTypeComboBox.setSelectedIndex(0);  
-        expiryDateChooser.setDate(null);  
         urlField.setText("");
         vendorField.setText("");
+        productTypeComboBox.setSelectedIndex(0);  
+        expiryDateChooser.setDate(null);  
     } else {
         JOptionPane.showMessageDialog(this, "Error adding product.");
-    } 
+    
+    }
+    
     }//GEN-LAST:event_addButtonActionPerformed
 
     private void productPriceFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_productPriceFieldActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_productPriceFieldActionPerformed
 
-    //DROPDOWN PERISHABLE, NON-PERISHABLE, DIGITAL
     private void productTypeComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_productTypeComboBoxActionPerformed
         // TODO add your handling code here:
         String selectedType = (String) productTypeComboBox.getSelectedItem();
@@ -619,14 +598,13 @@ private DefaultTableModel tableModel;
         expiryDateChooser.setDate(isPerishable ? expiryDateChooser.getDate() : null);
 
         urlField.setEnabled(isDigital);
-        vendorField.setEnabled(isDigital);
-        if (!isDigital) {
-            urlField.setText("");
-            vendorField.setText("");
+        urlField.setEnabled(isDigital);
+            if (!isDigital) {
+        urlField.setText("");
+        urlField.setText("");
     }
     }//GEN-LAST:event_productTypeComboBoxActionPerformed
 
-    //TOMBOL DELETE
     private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
         // TODO add your handling code here:
         try {
@@ -637,12 +615,7 @@ private DefaultTableModel tableModel;
         }
     }//GEN-LAST:event_deleteButtonActionPerformed
 
-    private void productNameFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_productNameFieldActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_productNameFieldActionPerformed
-
-    //TOMBOL UPDATE
-    private void updateButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateButtonActionPerformed
+    private void updateButtpnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateButtpnActionPerformed
         // TODO add your handling code here:
     try {
         updateProduct(evt);
@@ -651,12 +624,11 @@ private DefaultTableModel tableModel;
     } catch (MalformedURLException e) {
         JOptionPane.showMessageDialog(this, "URL error: " + e.getMessage());
     }
+    }//GEN-LAST:event_updateButtpnActionPerformed
 
-    }//GEN-LAST:event_updateButtonActionPerformed
-
-    //TOMBOL BUNDLE
     private void addToBundleButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addToBundleButtonActionPerformed
-    try {
+        // TODO add your handling code here
+         try {
         // TODO add your handling code here:
         openBundleDialog();
     } catch (MalformedURLException ex) {
@@ -713,7 +685,6 @@ private DefaultTableModel tableModel;
     private javax.swing.JButton deleteButton;
     private com.toedter.calendar.JDateChooser expiryDateChooser;
     private javax.swing.JComboBox<String> jComboBox2;
-    private com.toedter.calendar.JDateChooser jDateChooser1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -733,21 +704,19 @@ private DefaultTableModel tableModel;
     private javax.swing.JTextField productStockField;
     private javax.swing.JTable productTable;
     private javax.swing.JComboBox<String> productTypeComboBox;
-    private javax.swing.JButton updateButton;
+    private javax.swing.JButton updateButtpn;
     private javax.swing.JTextField urlField;
     private javax.swing.JTextField vendorField;
     // End of variables declaration//GEN-END:variables
 
 
-   
-    
-    //lOAD
-    private void loadProduct() throws MalformedURLException {
+ 
+ //Load
+   private void loadProduct() throws MalformedURLException {
     tableModel.setRowCount(0); 
     List<Product> products = ProductService.getAllProducts();
     for (Product product : products) {
         tableModel.addRow(new Object[]{product.getId(), product.getName(), product.getPrice(), product.getStock(), product.getType()});
     }
 }
-
 }
