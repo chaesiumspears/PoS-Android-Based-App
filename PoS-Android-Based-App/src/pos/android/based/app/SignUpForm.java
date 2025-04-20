@@ -54,9 +54,11 @@ public class SignUpForm extends javax.swing.JFrame {
         jLabel8 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setPreferredSize(new java.awt.Dimension(1280, 720));
         getContentPane().setLayout(null);
 
         jPanel1.setBackground(new java.awt.Color(17, 19, 21));
+        jPanel1.setPreferredSize(new java.awt.Dimension(1280, 720));
 
         jLabel1.setFont(new java.awt.Font("Myanmar Text", 1, 24)); // NOI18N
         jLabel1.setForeground(new java.awt.Color(250, 193, 217));
@@ -224,7 +226,7 @@ public class SignUpForm extends javax.swing.JFrame {
                     ps.setString(1, name);
                     ps.setString(2, email);
                     ps.setString(3, username);
-                    ps.setString(4, password);
+                    ps.setString(4, passwordHash.hashPassword(password));
                     int rows = ps.executeUpdate();
 
                     if (rows > 0) {

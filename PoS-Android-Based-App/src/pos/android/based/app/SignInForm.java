@@ -44,6 +44,7 @@ public class SignInForm extends javax.swing.JFrame {
         jLabel8 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setPreferredSize(new java.awt.Dimension(1280, 720));
         getContentPane().setLayout(null);
 
         jPanel1.setBackground(new java.awt.Color(17, 19, 21));
@@ -158,7 +159,7 @@ public class SignInForm extends javax.swing.JFrame {
     private void buttton_signInActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttton_signInActionPerformed
         // TODO add your handling code here:
         String username = jTextField1.getText().trim();
-        String password = new String(jPasswordField1.getPassword()).trim();
+        String password = passwordHash.hashPassword(jPasswordField1.getText());
 
         try {
             Connection conn = DatabaseConnection.connect();
