@@ -435,12 +435,12 @@ private DefaultTableModel tableModel;
                                             .addComponent(productStockField, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE))
                                         .addGap(36, 36, 36)
                                         .addComponent(jLabel6)
-                                        .addGap(18, 18, 18)
+                                        .addGap(26, 26, 26)
                                         .addComponent(expiryDateChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addGap(125, 125, 125)
                                 .addComponent(jLabel5)))
-                        .addGap(0, 73, Short.MAX_VALUE)))
+                        .addGap(0, 65, Short.MAX_VALUE)))
                 .addContainerGap())
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(107, 107, 107)
@@ -615,6 +615,7 @@ private DefaultTableModel tableModel;
         }
     }//GEN-LAST:event_deleteButtonActionPerformed
 
+    //tombol update
     private void updateButtpnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateButtpnActionPerformed
         // TODO add your handling code here:
     try {
@@ -714,7 +715,7 @@ private DefaultTableModel tableModel;
  //Load
    private void loadProduct() throws MalformedURLException {
     tableModel.setRowCount(0); 
-    List<Product> products = ProductService.getAllProducts();
+    List<Product> products = ProductService.getAllProducts(); 
     for (Product product : products) {
         tableModel.addRow(new Object[]{product.getId(), product.getName(), product.getPrice(), product.getStock(), product.getType()});
     }
