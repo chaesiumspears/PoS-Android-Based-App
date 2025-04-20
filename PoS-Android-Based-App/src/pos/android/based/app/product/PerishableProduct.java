@@ -14,7 +14,7 @@ public class PerishableProduct extends Product {
     private LocalDate expiryDate;
 
     public PerishableProduct(String id, String name, int stock, double price, LocalDate expiryDate) {
-        super(id, name, stock, price, "perishable"); // ✅ pastikan pakai constructor yang benar
+        super(id, name, stock, price, "perishable"); 
         this.expiryDate = expiryDate;
     }
 
