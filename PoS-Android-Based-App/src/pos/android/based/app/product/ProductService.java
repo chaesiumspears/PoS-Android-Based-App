@@ -192,7 +192,7 @@ public class ProductService {
     }
     }
     
-    //UNTUK MASUKKAN KE BUNDLE
+    
     private static List<Product> getItemsForBundle(String bundleId) throws SQLException, MalformedURLException {
     List<Product> items = new ArrayList<>();
     String query = "SELECT p.* FROM products p JOIN bundle_items b ON p.id = b.item_id WHERE b.bundle_id = ?";
@@ -241,5 +241,36 @@ public class ProductService {
             System.out.println("Get products error: " + e.getMessage());
         }
         return products;
+    }
+
+    //Produk ID
+    public static Product getProductById(String id) {
+        String query = "SELECT * FROM products WHERE id = ?";
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setString(1, id);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                String name = rs.getString("name");
+                double price = rs.getDouble("price");
+                int stock = rs.getInt("stock");
+                String type = rs.getString("type");
+
+                return switch (type) {
+                    case "perishable" -> new PerishableProduct(id, name, stock, price,
+                            LocalDate.parse(rs.getString("expiry_date")));
+                    case "digital" -> new DigitalProduct(id, name, price,
+                            new URL(rs.getString("url")),
+                            rs.getString("vendor_name"));
+                    case "bundle" -> new BundleProduct(id, name, price, getItemsForBundle(id)); //
+                    default -> new NonPerishableProduct(id, name, price, stock);
+                };
+            }
+        } catch (Exception e) {
+            System.out.println("Get product by ID error: " + e.getMessage());
+        }
+        return null;
     }
 }
