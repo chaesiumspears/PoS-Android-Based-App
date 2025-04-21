@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import javax.swing.JOptionPane;
 import pos.android.based.app.passwordHash;
+import java.sql.ResultSet;
 
 /**
  *
@@ -84,6 +85,7 @@ public class ManageUserForm extends javax.swing.JFrame {
         jLabel5 = new javax.swing.JLabel();
         jTextField4 = new javax.swing.JTextField();
         jRegex = new javax.swing.JLabel();
+        jBack1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(null);
@@ -110,6 +112,11 @@ public class ManageUserForm extends javax.swing.JFrame {
 
         jTextField1.setBackground(new java.awt.Color(204, 204, 204));
         jTextField1.setForeground(new java.awt.Color(41, 44, 45));
+        jTextField1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextField1ActionPerformed(evt);
+            }
+        });
 
         jTextField2.setBackground(new java.awt.Color(204, 204, 204));
         jTextField2.setForeground(new java.awt.Color(41, 44, 45));
@@ -175,6 +182,16 @@ public class ManageUserForm extends javax.swing.JFrame {
         jButton2.setBackground(new java.awt.Color(250, 193, 217));
         jButton2.setForeground(new java.awt.Color(30, 30, 30));
         jButton2.setText("Update");
+        jButton2.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton2MouseClicked(evt);
+            }
+        });
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         jButton3.setBackground(new java.awt.Color(250, 193, 217));
         jButton3.setForeground(new java.awt.Color(30, 30, 30));
@@ -194,6 +211,20 @@ public class ManageUserForm extends javax.swing.JFrame {
 
         jRegex.setForeground(new java.awt.Color(255, 0, 51));
         jRegex.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+
+        jBack1.setBackground(new java.awt.Color(17, 19, 21));
+        jBack1.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jBack1.setText("Back");
+        jBack1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jBack1MouseClicked(evt);
+            }
+        });
+        jBack1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jBack1ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -244,11 +275,17 @@ public class ManageUserForm extends javax.swing.JFrame {
                                     .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, 216, javax.swing.GroupLayout.PREFERRED_SIZE)))
                             .addComponent(jRegex, javax.swing.GroupLayout.PREFERRED_SIZE, 216, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addGap(38, 38, 38))
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(16, 16, 16)
+                .addComponent(jBack1)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(39, 39, 39)
+                .addGap(17, 17, 17)
+                .addComponent(jBack1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel6)
                 .addGap(18, 18, 18)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -319,7 +356,8 @@ public class ManageUserForm extends javax.swing.JFrame {
                 ps.close();
                 conn.close();
             } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Gagal tambah user: " + e.getMessage());
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Gagal tambah user: " + e.toString());
             }
         } else {
             if (name.isEmpty() || email.isEmpty() || username.isEmpty() || password.isEmpty()) {
@@ -348,9 +386,8 @@ public class ManageUserForm extends javax.swing.JFrame {
             int userId = (int) userTable.getValueAt(selectedRow, 0);
 
             int confirmation = JOptionPane.showConfirmDialog(this,
-                    "Do u sure u want to delete this user? ","Konfirmasi penghapusan", JOptionPane.YES_NO_OPTION);
+                    "Do u sure u want to delete this user? ", "message", JOptionPane.YES_NO_OPTION);
 
-            // Jika pengguna mengonfirmasi penghapusan
             if (confirmation == JOptionPane.YES_OPTION) {
                 try (Connection conn = DatabaseConnection.connect()) {
                     String sql = "DELETE FROM users WHERE id = ?";
@@ -375,6 +412,85 @@ public class ManageUserForm extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Pilih user yang ingin dihapus.");
         }
     }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void jBack1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jBack1MouseClicked
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jBack1MouseClicked
+
+    private void jBack1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBack1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jBack1ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        // TODO add your handling code here:
+
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void jButton2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton2MouseClicked
+        // TODO add your handling code here:
+        int selectedRow = userTable.getSelectedRow();
+
+        if (selectedRow != -1) {
+            int userId = (int) userTable.getValueAt(selectedRow, 0);
+            if (selectedRow != -1) {
+
+                String nameInput = jTextField1.getText();
+                String emailInput = jTextField2.getText();
+                String usernameInput = jTextField4.getText();
+                String passwordInput = jTextField3.getText(); // password kosong = tidak diubah
+                String roleInput = radioSuperAdmin.isSelected() ? "super_admin" : "admin";
+
+                String name = nameInput.isBlank() ? (String) userTable.getValueAt(selectedRow, 1) : nameInput;
+                String email = emailInput.isBlank() ? (String) userTable.getValueAt(selectedRow, 2) : emailInput;
+                String username = usernameInput.isBlank() ? (String) userTable.getValueAt(selectedRow, 3) : usernameInput;
+                String role = roleInput.isBlank() ? (String) userTable.getValueAt(selectedRow, 5) : roleInput;
+
+                try (Connection conn = DatabaseConnection.connect()) {
+                    String sql = "UPDATE users SET name = ?, email = ?, username = ?, password = ?, role = ? WHERE id = ?";
+                    PreparedStatement ps = conn.prepareStatement(sql);
+
+                    ps.setString(1, name);
+                    ps.setString(2, email);
+                    ps.setString(3, username);
+                    if (passwordInput.isBlank()) {
+                        PreparedStatement getPassword = conn.prepareStatement("SELECT password FROM users WHERE id = ?");
+                        getPassword.setInt(1, userId);
+                        ResultSet rs = getPassword.executeQuery();
+                        if (rs.next()) {
+                            ps.setString(4, rs.getString("password"));
+                        }
+                        rs.close();
+                        getPassword.close();
+                    } else {
+                        ps.setString(4, passwordHash.hashPassword(passwordInput));
+                    }
+                    ps.setString(5, role);
+                    ps.setInt(6, userId);
+
+                    int rowsUpdated = ps.executeUpdate();
+                    if (rowsUpdated > 0) {
+                        JOptionPane.showMessageDialog(this, "Update successful!");
+                        ((javax.swing.table.DefaultTableModel) userTable.getModel()).setValueAt(name, selectedRow, 1);
+                        ((javax.swing.table.DefaultTableModel) userTable.getModel()).setValueAt(email, selectedRow, 2);
+                        ((javax.swing.table.DefaultTableModel) userTable.getModel()).setValueAt(username, selectedRow, 3);
+                        ((javax.swing.table.DefaultTableModel) userTable.getModel()).setValueAt(role, selectedRow, 5);
+                        loadUserData();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Gagal memperbarui data user.");
+                    }
+                    ps.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    JOptionPane.showMessageDialog(this, "Gagal memperbarui user: " + e.getMessage());
+                }
+            }
+        }
+
+    }//GEN-LAST:event_jButton2MouseClicked
+
+    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextField1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -412,6 +528,7 @@ public class ManageUserForm extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jBack1;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;

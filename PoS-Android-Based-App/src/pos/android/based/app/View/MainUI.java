@@ -199,7 +199,6 @@ public class MainUI extends javax.swing.JFrame {
         mu.pack();
         mu.setLocationRelativeTo(null);
         mu.setDefaultCloseOperation(ProductForm.EXIT_ON_CLOSE);
-        this.dispose();
     }//GEN-LAST:event_ManageBtnActionPerformed
 
     /**

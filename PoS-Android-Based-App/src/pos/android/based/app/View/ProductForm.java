@@ -259,7 +259,7 @@ private DefaultTableModel tableModel;
         jLabel6 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
         productStockField = new javax.swing.JTextField();
-        expiryDateChooser = new com.toedter.calendar.JDateChooser();
+        expiryDateChooser = new org.netbeans.modules.form.InvalidComponent();
         urlField = new javax.swing.JTextField();
         vendorField = new javax.swing.JTextField();
         jLabel8 = new javax.swing.JLabel();
@@ -382,8 +382,6 @@ private DefaultTableModel tableModel;
 
         productStockField.setBackground(new java.awt.Color(204, 204, 204));
         productStockField.setCaretColor(new java.awt.Color(154, 154, 154));
-
-        expiryDateChooser.setForeground(new java.awt.Color(0, 0, 0));
 
         urlField.setBackground(new java.awt.Color(204, 204, 204));
         urlField.setForeground(new java.awt.Color(0, 0, 0));
@@ -625,13 +623,13 @@ private DefaultTableModel tableModel;
     //tombol update
     private void updateButtpnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateButtpnActionPerformed
         // TODO add your handling code here:
-    try {
-        updateProduct(evt);
-    } catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(this, "Invalid price or stock format.");
-    } catch (MalformedURLException e) {
-        JOptionPane.showMessageDialog(this, "URL error: " + e.getMessage());
-    }
+        try {
+            updateProduct(evt);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Invalid price or stock format.");
+        } catch (MalformedURLException e) {
+            JOptionPane.showMessageDialog(this, "URL error: " + e.getMessage());
+        }
     }//GEN-LAST:event_updateButtpnActionPerformed
 
     private void addToBundleButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addToBundleButtonActionPerformed
@@ -695,7 +693,7 @@ private DefaultTableModel tableModel;
     private javax.swing.JButton addButton;
     private javax.swing.JButton addToBundleButton;
     private javax.swing.JButton deleteButton;
-    private com.toedter.calendar.JDateChooser expiryDateChooser;
+    private org.netbeans.modules.form.InvalidComponent expiryDateChooser;
     private javax.swing.JComboBox<String> jComboBox2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

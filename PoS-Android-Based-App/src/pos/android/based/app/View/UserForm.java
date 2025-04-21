@@ -3,11 +3,11 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package pos.android.based.app.View;
+
 import pos.android.based.app.DatabaseConnection;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-
 
 /**
  *
@@ -16,12 +16,14 @@ import java.sql.ResultSet;
 public class UserForm extends javax.swing.JFrame {
 
     private String usernameLogin;
+    private String role;
+
 
     /**
      * Creates new form UserForm
      */
     public UserForm() {
-    throw new UnsupportedOperationException("gunakan constructor dengan parameter username.");
+        throw new UnsupportedOperationException("gunakan constructor dengan parameter username.");
     }
 
     public UserForm(String usernameLogin) {
@@ -78,6 +80,7 @@ public class UserForm extends javax.swing.JFrame {
         jPasswordField1 = new javax.swing.JPasswordField();
         jButton7 = new javax.swing.JButton();
         jinvalid = new javax.swing.JLabel();
+        jBack2 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setPreferredSize(new java.awt.Dimension(1280, 720));
@@ -168,6 +171,20 @@ public class UserForm extends javax.swing.JFrame {
         jinvalid.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
         jinvalid.setForeground(new java.awt.Color(255, 51, 51));
 
+        jBack2.setBackground(new java.awt.Color(17, 19, 21));
+        jBack2.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jBack2.setText("Back");
+        jBack2.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jBack2MouseClicked(evt);
+            }
+        });
+        jBack2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jBack2ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -202,13 +219,18 @@ public class UserForm extends javax.swing.JFrame {
                         .addComponent(jButton6))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(258, 258, 258)
-                        .addComponent(jLabel6)))
-                .addContainerGap(421, Short.MAX_VALUE))
+                        .addComponent(jLabel6))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(16, 16, 16)
+                        .addComponent(jBack2)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(52, 52, 52)
+                .addGap(17, 17, 17)
+                .addComponent(jBack2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel6)
                 .addGap(47, 47, 47)
                 .addComponent(jLabel1)
@@ -236,7 +258,7 @@ public class UserForm extends javax.swing.JFrame {
                     .addComponent(jButton7, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jinvalid, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(295, Short.MAX_VALUE))
+                .addContainerGap(291, Short.MAX_VALUE))
         );
 
         getContentPane().add(jPanel1);
@@ -268,6 +290,22 @@ public class UserForm extends javax.swing.JFrame {
     private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jTextField1ActionPerformed
+
+    private void jBack2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jBack2MouseClicked
+        //kembali ke home page
+    }//GEN-LAST:event_jBack2MouseClicked
+
+    private void jBack2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBack2ActionPerformed
+        // TODO add your handling code here:
+        String role = rs.getString("role");
+        // ke homepage
+        MainUI main = new MainUI(username, role);
+        main.setVisible(true);
+        main.pack();
+        main.setLocationRelativeTo(null);
+        main.setDefaultCloseOperation(MainUI.EXIT_ON_CLOSE);
+        this.dispose();
+    }//GEN-LAST:event_jBack2ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -305,6 +343,7 @@ public class UserForm extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jBack2;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton5;
