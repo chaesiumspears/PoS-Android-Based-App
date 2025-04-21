@@ -19,7 +19,6 @@ import pos.android.based.app.product.ProductService;
 import java.net.URL;
 import pos.android.based.app.product.Product;
 import pos.android.based.app.product.DigitalProduct;
-import com.toedter.calendar.JDateChooser;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Map;
@@ -27,8 +26,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import pos.android.based.app.View.MainUI;
-import static pos.android.based.app.View.ManageUserForm.role;
-import static pos.android.based.app.View.ManageUserForm.username;
+import pos.android.based.app.product.BundleProduct;
+import pos.android.based.app.product.NonPerishableProduct;
+import pos.android.based.app.product.PerishableProduct;
 
 
 public class ProductForm extends JFrame {
@@ -36,6 +36,8 @@ public class ProductForm extends JFrame {
 private DefaultTableModel tableModel;
 private String loggedInUsername;
 private String userRole;
+private final ProductService ProductService = new ProductService();
+
     
     public ProductForm(String username, String role) throws MalformedURLException {      
         setTitle("Product Management");
@@ -49,238 +51,174 @@ private String userRole;
         String[] columnNames = {"ID", "Name", "Price", "Stock","Vendor","URL","Type"};
         tableModel = new DefaultTableModel(columnNames, 0);
         productTable.setModel(tableModel);
-        loadProduct();
-
-       
-    }
-    
-    
- //hapus product
-    private void deleteProduct (ActionEvent evt) throws MalformedURLException {
-    int selectedRow = productTable.getSelectedRow();
-    if (selectedRow == -1) {
-        JOptionPane.showMessageDialog(this, "Please select a product to delete.");
-        return;
-    }
-    String productId = (String) productTable.getValueAt(selectedRow, 0); 
-    int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this product?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
-    if (confirm == JOptionPane.YES_OPTION) {
-        boolean success = ProductService.deleteProduct(productId);
-        if (success) {
-            JOptionPane.showMessageDialog(this, "Product deleted successfully!");
-            loadProduct();
-        } else {
-            JOptionPane.showMessageDialog(this, "Failed to delete product.");
-        }
-    }
- }
-    
-    //update product
-    private void updateProduct(ActionEvent evt) throws MalformedURLException {
-    int selectedRow = productTable.getSelectedRow();
-    if (selectedRow == -1) {
-        JOptionPane.showMessageDialog(this, "Please select a product to update.");
-        return;
-    }
-    String id = (String) productTable.getValueAt(selectedRow, 0);
-    String oldName = (String) productTable.getValueAt(selectedRow, 1);
-    double oldPrice = Double.parseDouble(productTable.getValueAt(selectedRow, 2).toString());
-    int oldStock = Integer.parseInt(productTable.getValueAt(selectedRow, 3).toString());
-    String oldType = (String) productTable.getValueAt(selectedRow, 4);
-    String nameInput = productNameField.getText().trim();
-    String priceInput = productPriceField.getText().replace(",", ".").trim();
-    String stockInput = productStockField.getText().trim();
-    String typeInput = (String) productTypeComboBox.getSelectedItem();
-    String name = nameInput.isEmpty() ? oldName : nameInput;
-    double price;
-    int stock;
-    try {
-        price = priceInput.isEmpty() ? oldPrice : Double.parseDouble(priceInput);
-        stock = stockInput.isEmpty() ? oldStock : Integer.parseInt(stockInput);
-    } catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(this, "Invalid price or stock format.");
-        return;
-    }
-    String type = (typeInput == null || typeInput.isEmpty()) ? oldType : typeInput;
-    LocalDate expiryDate = null;
-    if ("Perishable".equals(type)) {
-        if (expiryDateChooser.getDate() == null) {
-            JOptionPane.showMessageDialog(this, "Please select an expiration date.");
-            return;
-        }
-        expiryDate = expiryDateChooser.getDate().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
-    }
-    boolean success = ProductService.updateProduct(id, name, price, stock, type, expiryDate);
-    if (success) {
-        JOptionPane.showMessageDialog(this, "Product updated successfully!");
-        loadProduct();
-        productNameField.setText("");
-        productPriceField.setText("");
-        productStockField.setText("");
-        productTypeComboBox.setSelectedIndex(0);
-        expiryDateChooser.setDate(null);
-    } else {
-        JOptionPane.showMessageDialog(this, "Failed to update product.");
-    }   
+        loadProduct();   
     }
     
     //jdialog
     private void openBundleDialog() throws MalformedURLException {
-    JDialog dialog = new JDialog(this, "Pilih Produk untuk Bundle", true);
-    dialog.setSize(600, 400);
-    dialog.setLocationRelativeTo(this);
-    dialog.setLayout(new BorderLayout());
-
-    JTable table = createBundleSelectionTable();
-    JScrollPane scrollPane = new JScrollPane(table);
-    JButton confirmButton = new JButton("Buat Bundle");
-
-    confirmButton.addActionListener(e -> {
+        JDialog dialog = new JDialog(this, "Select Products for Bundles", true);
+        dialog.setSize(600, 400);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout());
+        JTable table = createBundleSelectionTable();
+        JScrollPane scrollPane = new JScrollPane(table);
+        JButton confirmButton = new JButton("Create a Bundle");
+        confirmButton.addActionListener(e -> {
+            try {
+                List<Product> selectedItems = collectSelectedProducts(table);
+                if (selectedItems.isEmpty()) {
+                    JOptionPane.showMessageDialog(dialog, "Select a minimum of 2 products");
+                    return;
+                }
+                String[] bundleInfo = promptBundleDetails(dialog);
+                if (bundleInfo == null) return;
+                String namaBundle = bundleInfo[0];
+                double hargaBundle = Double.parseDouble(bundleInfo[1]);          
+                boolean confirmed = showBundlePreview(namaBundle, hargaBundle, selectedItems);
+                if (!confirmed) return;
+                confirmAndSaveBundle(namaBundle, hargaBundle, selectedItems, dialog);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialog, "An error occurred:" + ex.getMessage());
+                ex.printStackTrace();
+            }
+        });
+        dialog.add(new JLabel("Fill in the Quantity field to select a product"), BorderLayout.NORTH);
+        dialog.add(scrollPane, BorderLayout.CENTER);
+        dialog.add(confirmButton, BorderLayout.SOUTH);
+        dialog.setVisible(true);
+        }
+    
+    private void confirmAndSaveBundle(String namaBundle, double hargaBundle, List<Product> items, JDialog dialog) {
         try {
-            List<Product> selectedItems = collectSelectedProducts(table);
-            if (selectedItems.isEmpty()) {
-                JOptionPane.showMessageDialog(dialog, "Pilih minimal 1 produk dengan Qty > 0.");
-                return;
+            BundleProduct bundle = new BundleProduct(null, namaBundle, hargaBundle, items);
+            boolean success = ProductService.addProduct(bundle);
+            if (success) {
+                JOptionPane.showMessageDialog(this, "The bundle was successfully added.");
+                loadProduct();
+                dialog.dispose();
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to add bundle.");
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error saving the bundle:" + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    private JTable createBundleSelectionTable() throws MalformedURLException {
+        List<Product> productList = ProductService.getAllProducts();
+        String[] columns = {"ID", "Name", "Price", "Quantity"};
+
+        DefaultTableModel tableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column == 3;
             }
 
-            String[] bundleInfo = promptBundleDetails(dialog);
-            if (bundleInfo == null) return;
+            @Override
+            public Class<?> getColumnClass(int columnIndex) {
+                return columnIndex == 3 ? Integer.class : String.class;
+            }
+        };
 
-            String namaBundle = bundleInfo[0];
-            double hargaBundle = Double.parseDouble(bundleInfo[1]);
-            
-            boolean confirmed = showBundlePreview(namaBundle, hargaBundle, selectedItems);
-            if (!confirmed) return;
-
-            confirmAndSaveBundle(namaBundle, hargaBundle, selectedItems, dialog);
-
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(dialog, "Terjadi kesalahan: " + ex.getMessage());
-            ex.printStackTrace();
-        }
-    });
-
-    dialog.add(new JLabel("Isi kolom Qty untuk memilih produk"), BorderLayout.NORTH);
-    dialog.add(scrollPane, BorderLayout.CENTER);
-    dialog.add(confirmButton, BorderLayout.SOUTH);
-    dialog.setVisible(true);
-    }
-
-    private JTable createBundleSelectionTable() throws MalformedURLException {
-    List<Product> productList = ProductService.getAllProducts();
-    String[] columns = {"ID", "Name", "Price", "Qty"};
-
-    DefaultTableModel tableModel = new DefaultTableModel(columns, 0) {
-        @Override
-        public boolean isCellEditable(int row, int column) {
-            return column == 3;
+        for (Product p : productList) {
+            if (!(p instanceof BundleProduct)) {
+                tableModel.addRow(new Object[]{p.getId(), p.getName(), p.getPrice(), 0});
+            }
         }
 
-        @Override
-        public Class<?> getColumnClass(int columnIndex) {
-            return columnIndex == 3 ? Integer.class : String.class;
-        }
-    };
-
-    for (Product p : productList) {
-        tableModel.addRow(new Object[]{p.getId(), p.getName(), p.getPrice(), 0});
-    }
-
-    return new JTable(tableModel);
+        return new JTable(tableModel);
     }
 
     private List<Product> collectSelectedProducts(JTable table) {
-    List<Product> selectedItems = new ArrayList<>();
-    DefaultTableModel model = (DefaultTableModel) table.getModel();
+        List<Product> selectedItems = new ArrayList<>();
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
 
-    for (int i = 0; i < model.getRowCount(); i++) {
-        int qty;
-        try {
-            qty = Integer.parseInt(model.getValueAt(i, 3).toString());
-        } catch (Exception ex) {
-            throw new IllegalArgumentException("Qty harus berupa angka.");
-        }
+        for (int i = 0; i < model.getRowCount(); i++) {
+            int qty;
+            try {
+                qty = Integer.parseInt(model.getValueAt(i, 3).toString());
+            } catch (Exception ex) {
+                throw new IllegalArgumentException("The quantity must be a number.");
+            }
 
-        if (qty > 0) {
-            String id = model.getValueAt(i, 0).toString();
-            Product product = ProductService.getProductById(id);
-            for (int j = 0; j < qty; j++) {
-                selectedItems.add(product);
+            if (qty > 0) {
+                String id = model.getValueAt(i, 0).toString();
+                Product product = ProductService.getProductById(id);
+                for (int j = 0; j < qty; j++) {
+                    selectedItems.add(product);
+                }
             }
         }
+        return selectedItems;
     }
-    return selectedItems;
-    }
-    
-    //preview bundle
-    private boolean showBundlePreview(String namaBundle, double hargaBundle, List<Product> items) {
-    Map<String, Long> grouped = items.stream().collect(Collectors.groupingBy(Product::getName, Collectors.counting()));
-    double totalHargaNormal = items.stream().mapToDouble(Product::getPrice).sum();
-    StringBuilder preview = new StringBuilder("Bundle Name: " + namaBundle + "\n");
-    preview.append("Total Normal Price: ").append(String.format("%.2f", totalHargaNormal)).append("\n");
-    preview.append("Bundle Price: ").append(String.format("%.2f", hargaBundle)).append("\n");
-    preview.append("Discount: ").append(String.format("%.2f", totalHargaNormal - hargaBundle)).append("\n\n");
-    for (Map.Entry<String, Long> entry : grouped.entrySet()) {
-        preview.append("- ").append(entry.getKey()).append(" x").append(entry.getValue()).append("\n");
-    }
-    int confirm = JOptionPane.showConfirmDialog(this, new JTextArea(preview.toString()), "Konfirmasi Bundle", JOptionPane.OK_CANCEL_OPTION);
-    return confirm == JOptionPane.OK_OPTION;
-    }
-
 
     private String[] promptBundleDetails(Component parent) {
-    String namaBundle = JOptionPane.showInputDialog(parent, "Nama bundle:");
-    if (namaBundle == null || namaBundle.trim().isEmpty()) {
-        JOptionPane.showMessageDialog(parent, "Nama bundle tidak boleh kosong.");
-        return null;
+        String namaBundle = JOptionPane.showInputDialog(parent, "Bundle name:");
+        if (namaBundle == null || namaBundle.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(parent, "The bundle name can't be empty.");
+            return null;
+        }
+
+        String hargaStr = JOptionPane.showInputDialog(parent, "Bundle pricing:");
+        try {
+            Double.parseDouble(hargaStr);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(parent, "Prices are invalid.");
+            return null;
+        }
+
+        return new String[]{namaBundle.trim(), hargaStr.trim()};
     }
 
-    String hargaStr = JOptionPane.showInputDialog(parent, "Harga bundle:");
+    private boolean showBundlePreview(String namaBundle, double hargaBundle, List<Product> items) {
+        Map<String, Long> grouped = items.stream().collect(Collectors.groupingBy(Product::getName, Collectors.counting()));
+        double totalHargaNormal = items.stream().mapToDouble(Product::getPrice).sum();
+        StringBuilder preview = new StringBuilder("Bundle Name: " + namaBundle + "\n");
+        preview.append("Total Normal Price: ").append(String.format("%.2f", totalHargaNormal)).append("\n");
+        preview.append("Bundle Price: ").append(String.format("%.2f", hargaBundle)).append("\n");
+        preview.append("Discount: ").append(String.format("%.2f", totalHargaNormal - hargaBundle)).append("\n\n");
+        int confirm = JOptionPane.showConfirmDialog(this, new JTextArea(preview.toString()), "Konfirmasi Bundle", JOptionPane.OK_CANCEL_OPTION);
+        return confirm == JOptionPane.OK_OPTION;
+    }
+
+    
+    
+
+ private void createBundle(List<Product> items) {
+    String name = JOptionPane.showInputDialog(this, "Bundle name:");
+    if (name == null || name.trim().isEmpty()) {
+        JOptionPane.showMessageDialog(this, "The bundle name can't be empty.");
+        return;
+    }
+
+    String hargaStr = JOptionPane.showInputDialog(this, "Bundle pricing:");
+    double bundlePrice;
     try {
-        Double.parseDouble(hargaStr);
+        bundlePrice = Double.parseDouble(hargaStr);
     } catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(parent, "Harga tidak valid.");
-        return null;
+        JOptionPane.showMessageDialog(this, "Prices are invalid.");
+        return;
     }
 
-    return new String[]{namaBundle.trim(), hargaStr.trim()};
-}
+    double totalNormalPrice = items.stream().mapToDouble(Product::getPrice).sum();
+    int stock = 1;
 
-    private void confirmAndSaveBundle(String namaBundle, double hargaBundle, List<Product> items, JDialog dialog) {
-    boolean success = ProductService.addBundle(namaBundle, hargaBundle, 1, items);
+    BundleProduct bundle = new BundleProduct(null, name, bundlePrice, items);
+    bundle.setStock(stock); // jika kamu ingin menambahkan stok juga
+
+    boolean success = ProductService.addProduct(bundle);
     if (success) {
-        JOptionPane.showMessageDialog(this, "Bundle berhasil ditambahkan.");
+        JOptionPane.showMessageDialog(this, "Bundles were successfully added!\\nTotal:" + totalNormalPrice + "\nDiskon: " + (totalNormalPrice - bundlePrice));
         try {
             loadProduct();
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
-        dialog.dispose();
     } else {
-        JOptionPane.showMessageDialog(this, "Gagal menambahkan bundle.");
-    }
-    }
-
-
-    //create bundle
-    private void createBundle(List<Product> items) {
-    String name = JOptionPane.showInputDialog(this, "Bundle Name:");
-    double bundlePrice = Double.parseDouble(JOptionPane.showInputDialog(this, "Bundle Price:"));
-    double totalNormalPrice = items.stream().mapToDouble(Product::getPrice).sum();
-    int stock = 1;
-    boolean success = ProductService.addBundle(name, bundlePrice, stock, items); // ✅ DI SINI dibuat
-    if (success) {
-        JOptionPane.showMessageDialog(this, "Bundle added!\nTotal: " + totalNormalPrice + "\nDiscounted: " + bundlePrice);
-        try {
-            loadProduct();
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        }
-    } else {
-        JOptionPane.showMessageDialog(this, "Failed to add bundle.");
+        JOptionPane.showMessageDialog(this, "Failed to add bundles");
     }
 }
-
 
    
     
@@ -477,7 +415,7 @@ private String userRole;
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 654, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 695, Short.MAX_VALUE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(addButton, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -581,8 +519,8 @@ private String userRole;
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 701, Short.MAX_VALUE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -596,79 +534,79 @@ private String userRole;
 
     //untuk tombol add product
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
-        String name = productNameField.getText().trim();
-        String priceStr = productPriceField.getText().trim().replace(",", ".");
-        String stockStr = productStockField.getText().trim();
-        String type = (String) productTypeComboBox.getSelectedItem();
 
-        if (name.isEmpty() || priceStr.isEmpty() || stockStr.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Nama, harga, dan stok harus diisi.");
-            return;
-        }
+    String name = productNameField.getText().trim();
+    String priceStr = productPriceField.getText().trim().replace(",", ".");
+    String stockStr = productStockField.getText().trim();
+    String type = (String) productTypeComboBox.getSelectedItem();
 
-        double price;
-        int stock;
-
-        try {
-            price = Double.parseDouble(priceStr);
-            stock = Integer.parseInt(stockStr);
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Format harga atau stok tidak valid.");
+    if (name.isEmpty() || priceStr.isEmpty() || stockStr.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Nama, harga, dan stok harus diisi.");
         return;
-        }
+    }
 
-        LocalDate expiryDate = null;
-        boolean success = false;
+    double price;
+    int stock;
 
+    try {
+        price = Double.parseDouble(priceStr);
+        stock = Integer.parseInt(stockStr);
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(this, "Format harga atau stok tidak valid.");
+        return;
+    }
+
+    Product newProduct = null;
+
+    try {
         switch (type) {
-            case "Non-Perishable":
-                success = ProductService.addNonPerishable(name, price, stock);
-                break;
-            case "Perishable":
+            case "Non-Perishable" -> {
+                newProduct = new NonPerishableProduct(null, name, price, stock);
+            }
+            case "Perishable" -> {
                 if (expiryDateChooser.getDate() == null) {
                     JOptionPane.showMessageDialog(this, "Silakan pilih tanggal kadaluarsa.");
                     return;
                 }
-                expiryDate = expiryDateChooser.getDate().toInstant()
-                            .atZone(java.time.ZoneId.systemDefault()).toLocalDate();
-                success = ProductService.addPerishable(name, price, stock, expiryDate);
-                break;
-            case "Digital":
+                LocalDate expiry = expiryDateChooser.getDate().toInstant()
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toLocalDate();
+                newProduct = new PerishableProduct(null, name, stock, price, expiry);
+            }
+            case "Digital" -> {
                 String urlStr = urlField.getText().trim();
                 String vendor = vendorField.getText().trim();
-
                 if (urlStr.isEmpty() || vendor.isEmpty()) {
                     JOptionPane.showMessageDialog(this, "URL dan Vendor harus diisi untuk produk digital.");
                     return;
                 }
-                try {
-                    URL url = new URL(urlStr);
-                    success = ProductService.addDigital(name, price, stock, url, vendor);
-                } catch (MalformedURLException e) {
-                    JOptionPane.showMessageDialog(this, "Format URL tidak valid.");
-                    return;
-                }
-                break;
+                URL url = new URL(urlStr);
+                newProduct = new DigitalProduct(null, name, price, url, vendor);
+            }
         }
-        if (success) {
-            JOptionPane.showMessageDialog(this, "Product added successfully!");
-            try {  
-                    loadProduct();
-                } catch (MalformedURLException ex) {
-                    Logger.getLogger(ProductForm.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            productNameField.setText("");
-            productPriceField.setText("");
-            productStockField.setText("");
-            urlField.setText("");
-            vendorField.setText("");
-            productTypeComboBox.setSelectedIndex(0);  
-            expiryDateChooser.setDate(null);  
-        } else {
-            JOptionPane.showMessageDialog(this, "Error adding product.");
-    
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, "Terjadi kesalahan: " + e.getMessage());
+        return;
+    }
+
+    boolean success = ProductService.addProduct(newProduct);
+    if (success) {
+        JOptionPane.showMessageDialog(this, "Produk berhasil ditambahkan!");
+        try {
+            loadProduct();
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(ProductForm.class.getName()).log(Level.SEVERE, null, ex);
         }
-    
+        productNameField.setText("");
+        productPriceField.setText("");
+        productStockField.setText("");
+        urlField.setText("");
+        vendorField.setText("");
+        productTypeComboBox.setSelectedIndex(0);
+        expiryDateChooser.setDate(null);
+    } else {
+        JOptionPane.showMessageDialog(this, "Gagal menambahkan produk.");
+    }
     }//GEN-LAST:event_addButtonActionPerformed
 
     private void productPriceFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_productPriceFieldActionPerformed
@@ -694,25 +632,115 @@ private String userRole;
 
     private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
         // TODO add your handling code here:
-        try {
-        deleteProduct(evt);
-        } catch (MalformedURLException e) {
-        e.printStackTrace();
-        JOptionPane.showMessageDialog(this, "Error deleting product: " + e.getMessage());
+        int selectedRow = productTable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Please select a product to delete.");
+            return;
         }
+        String productId = (String) productTable.getValueAt(selectedRow, 0);
+        int confirm = JOptionPane.showConfirmDialog(this,
+            "Are you sure you want to delete this product?",
+            "Confirm Delete", JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                boolean deleted = ProductService.deleteProduct(productId);
+            if (deleted) {
+                JOptionPane.showMessageDialog(this, "Product deleted successfully!");
+                loadProduct(); 
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to delete product.");
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error deleting product: " + ex.getMessage());
+        }
+    }
     }//GEN-LAST:event_deleteButtonActionPerformed
 
+    private String safeValueAt(int row, int col, String fieldName) {
+    Object val = productTable.getValueAt(row, col);
+    if (val == null) {
+        JOptionPane.showMessageDialog(this, "Column " + fieldName + " is invalid");
+        throw new NullPointerException("Invalid value in " + fieldName);
+    }
+    return val.toString();
+}
+
+
     private void updateButtpnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateButtpnActionPerformed
-        // TODO add your handling code here:
+       int selectedRow = productTable.getSelectedRow();
+    if (selectedRow == -1) {
+        JOptionPane.showMessageDialog(this, "Please select a product to update.");
+        return;
+    }
+
     try {
-        updateProduct(evt);
-    } catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(this, "Invalid price or stock format.");
-    } catch (MalformedURLException e) {
-        JOptionPane.showMessageDialog(this, "URL error: " + e.getMessage());
+        String id = safeValueAt(selectedRow, 0, "ID");
+        String oldName = safeValueAt(selectedRow, 1, "Name");
+        double oldPrice = Double.parseDouble(safeValueAt(selectedRow, 2, "Price"));
+        int oldStock = Integer.parseInt(safeValueAt(selectedRow, 3, "Stock"));
+        String oldType = safeValueAt(selectedRow, 6, "Type");
+
+        String nameInput = productNameField.getText().trim();
+        String priceInput = productPriceField.getText().replace(",", ".").trim();
+        String stockInput = productStockField.getText().trim();
+        String typeInput = (String) productTypeComboBox.getSelectedItem();
+
+        String name = nameInput.isEmpty() ? oldName : nameInput;
+        String type = (typeInput == null || typeInput.isEmpty()) ? oldType : typeInput;
+        double price = priceInput.isEmpty() ? oldPrice : Double.parseDouble(priceInput);
+        int stock = stockInput.isEmpty() ? oldStock : Integer.parseInt(stockInput);
+
+        Product updatedProduct = null;
+        switch (type.toLowerCase()) {
+            case "non-perishable" -> updatedProduct = new NonPerishableProduct(id, name, price, stock);
+            case "perishable" -> {
+                if (expiryDateChooser.getDate() == null) {
+                    JOptionPane.showMessageDialog(this, "Please select an expiration date.");
+                    return;
+                }
+                LocalDate expiry = expiryDateChooser.getDate().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+                updatedProduct = new PerishableProduct(id, name, stock, price, expiry);
+            }
+            case "digital" -> {
+                String urlStr = urlField.getText().trim();
+                String vendor = vendorField.getText().trim();
+                if (urlStr.isEmpty() || vendor.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "URL dan Vendor harus diisi untuk produk digital.");
+                    return;
+                }
+                URL url = new URL(urlStr);
+                updatedProduct = new DigitalProduct(id, name, price, url, vendor);
+                updatedProduct.setStock(stock);
+            }
+            default -> {
+                JOptionPane.showMessageDialog(this, "Tipe produk tidak dikenal.");
+                return;
+            }
+        }
+
+        boolean success = ProductService.updateProduct(updatedProduct);
+        if (success) {
+            JOptionPane.showMessageDialog(this, "Product updated successfully!");
+            clearProductForm();
+            loadProduct();
+        } else {
+            JOptionPane.showMessageDialog(this, "Failed to update product.");
+        }
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, "Error saat update: " + e.getMessage());
+        e.printStackTrace();
     }
     }//GEN-LAST:event_updateButtpnActionPerformed
 
+    private void clearProductForm() {
+    productNameField.setText("");
+    productPriceField.setText("");
+    productStockField.setText("");
+    productTypeComboBox.setSelectedIndex(0);
+    expiryDateChooser.setDate(null);
+}
+    
     private void addToBundleButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addToBundleButtonActionPerformed
         // TODO add your handling code here
          try {
@@ -843,7 +871,7 @@ private String userRole;
 
  
  //Load
-   private void loadProduct() throws MalformedURLException {
+private void loadProduct() throws MalformedURLException {
     tableModel.setRowCount(0); 
     List<Product> products = ProductService.getAllProducts();
     for (Product product : products) {
@@ -852,9 +880,9 @@ private String userRole;
             product.getName(), 
             product.getPrice(), 
             product.getStock(), 
-            product.getType(),
             (product instanceof DigitalProduct) ? ((DigitalProduct) product).getVendorName() : "",
-            (product instanceof DigitalProduct) ? ((DigitalProduct) product).getUrl().toString() : ""
+            (product instanceof DigitalProduct) ? ((DigitalProduct) product).getUrl().toString() : "",
+            product.getType()
         });
     }
 }
