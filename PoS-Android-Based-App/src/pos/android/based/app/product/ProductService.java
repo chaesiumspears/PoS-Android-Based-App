@@ -256,4 +256,17 @@ public class ProductService {
         }
         return null;
     }
+    
+    public static boolean updateStock(String productId, int quantityChange) {
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement stmt = conn.prepareStatement("UPDATE products SET stock = stock + ? WHERE id = ?")) {
+            stmt.setInt(1, quantityChange); 
+            stmt.setString(2, productId);
+            int rowsUpdated = stmt.executeUpdate();
+            return rowsUpdated > 0;
+        } catch (SQLException e) {
+            System.out.println("Error updating stock: " + e.getMessage());
+            return false;
+        }
+    }
 }
