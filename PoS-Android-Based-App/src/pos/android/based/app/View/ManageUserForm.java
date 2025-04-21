@@ -334,7 +334,7 @@ public class ManageUserForm extends javax.swing.JFrame {
         String password = jTextField3.getText();
         String role = radioSuperAdmin.isSelected() ? "super_admin" : "admin";
 
-        String usernameRegex = "^(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]{3,20}$";
+        String usernameRegex = "^(?![_.])^(?!\\d)(?!.*[_.]{2})[a-zA-Z0-9._]{3,20}$";
 
         if (!name.isEmpty() && !email.isEmpty() && !username.isEmpty() && !password.isEmpty() && username.matches(usernameRegex)) {
             try {
@@ -357,7 +357,7 @@ public class ManageUserForm extends javax.swing.JFrame {
                 conn.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Gagal tambah user: " + e.toString());
+                JOptionPane.showMessageDialog(this, "failed to add user: " + e.toString());
             }
         } else {
             if (name.isEmpty() || email.isEmpty() || username.isEmpty() || password.isEmpty()) {
@@ -396,20 +396,20 @@ public class ManageUserForm extends javax.swing.JFrame {
 
                     int rowsAffected = ps.executeUpdate();
                     if (rowsAffected > 0) {
-                        JOptionPane.showMessageDialog(this, "User berhasil dihapus!");
+                        JOptionPane.showMessageDialog(this, "user successfully deleted!");
                         ((javax.swing.table.DefaultTableModel) userTable.getModel()).removeRow(selectedRow);
                     } else {
-                        JOptionPane.showMessageDialog(this, "Gagal menghapus user.");
+                        JOptionPane.showMessageDialog(this, "failed to delete user");
                     }
 
                     ps.close();
                 } catch (Exception e) {
                     e.printStackTrace();
-                    JOptionPane.showMessageDialog(this, "Gagal menghapus user: " + e.getMessage());
+                    JOptionPane.showMessageDialog(this, "failed to delete user: " + e.getMessage());
                 }
             }
         } else {
-            JOptionPane.showMessageDialog(this, "Pilih user yang ingin dihapus.");
+            JOptionPane.showMessageDialog(this, "choose user u want to delete");
         }
     }//GEN-LAST:event_jButton3ActionPerformed
 
@@ -432,60 +432,56 @@ public class ManageUserForm extends javax.swing.JFrame {
 
         if (selectedRow != -1) {
             int userId = (int) userTable.getValueAt(selectedRow, 0);
-            if (selectedRow != -1) {
+            String nameInput = jTextField1.getText();
+            String emailInput = jTextField2.getText();
+            String usernameInput = jTextField4.getText();
+            String passwordInput = jTextField3.getText(); 
+            String roleInput = radioSuperAdmin.isSelected() ? "super_admin" : "admin";
 
-                String nameInput = jTextField1.getText();
-                String emailInput = jTextField2.getText();
-                String usernameInput = jTextField4.getText();
-                String passwordInput = jTextField3.getText(); // password kosong = tidak diubah
-                String roleInput = radioSuperAdmin.isSelected() ? "super_admin" : "admin";
+            String name = nameInput.isBlank() ? (String) userTable.getValueAt(selectedRow, 1) : nameInput;
+            String email = emailInput.isBlank() ? (String) userTable.getValueAt(selectedRow, 2) : emailInput;
+            String username = usernameInput.isBlank() ? (String) userTable.getValueAt(selectedRow, 3) : usernameInput;
+            String role = roleInput.isBlank() ? (String) userTable.getValueAt(selectedRow, 4) : roleInput;
 
-                String name = nameInput.isBlank() ? (String) userTable.getValueAt(selectedRow, 1) : nameInput;
-                String email = emailInput.isBlank() ? (String) userTable.getValueAt(selectedRow, 2) : emailInput;
-                String username = usernameInput.isBlank() ? (String) userTable.getValueAt(selectedRow, 3) : usernameInput;
-                String role = roleInput.isBlank() ? (String) userTable.getValueAt(selectedRow, 5) : roleInput;
+            try (Connection conn = DatabaseConnection.connect()) {
+                String sql = "UPDATE users SET name = ?, email = ?, username = ?, password = ?, role = ? WHERE id = ?";
+                PreparedStatement ps = conn.prepareStatement(sql);
 
-                try (Connection conn = DatabaseConnection.connect()) {
-                    String sql = "UPDATE users SET name = ?, email = ?, username = ?, password = ?, role = ? WHERE id = ?";
-                    PreparedStatement ps = conn.prepareStatement(sql);
-
-                    ps.setString(1, name);
-                    ps.setString(2, email);
-                    ps.setString(3, username);
-                    if (passwordInput.isBlank()) {
-                        PreparedStatement getPassword = conn.prepareStatement("SELECT password FROM users WHERE id = ?");
-                        getPassword.setInt(1, userId);
-                        ResultSet rs = getPassword.executeQuery();
-                        if (rs.next()) {
-                            ps.setString(4, rs.getString("password"));
-                        }
-                        rs.close();
-                        getPassword.close();
-                    } else {
-                        ps.setString(4, passwordHash.hashPassword(passwordInput));
+                ps.setString(1, name);
+                ps.setString(2, email);
+                ps.setString(3, username);
+                if (passwordInput.isBlank()) {
+                    PreparedStatement getPassword = conn.prepareStatement("SELECT password FROM users WHERE id = ?");
+                    getPassword.setInt(1, userId);
+                    ResultSet rs = getPassword.executeQuery();
+                    if (rs.next()) {
+                        ps.setString(4, rs.getString("password"));
                     }
-                    ps.setString(5, role);
-                    ps.setInt(6, userId);
-
-                    int rowsUpdated = ps.executeUpdate();
-                    if (rowsUpdated > 0) {
-                        JOptionPane.showMessageDialog(this, "Update successful!");
-                        ((javax.swing.table.DefaultTableModel) userTable.getModel()).setValueAt(name, selectedRow, 1);
-                        ((javax.swing.table.DefaultTableModel) userTable.getModel()).setValueAt(email, selectedRow, 2);
-                        ((javax.swing.table.DefaultTableModel) userTable.getModel()).setValueAt(username, selectedRow, 3);
-                        ((javax.swing.table.DefaultTableModel) userTable.getModel()).setValueAt(role, selectedRow, 5);
-                        loadUserData();
-                    } else {
-                        JOptionPane.showMessageDialog(this, "Gagal memperbarui data user.");
-                    }
-                    ps.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    JOptionPane.showMessageDialog(this, "Gagal memperbarui user: " + e.getMessage());
+                    rs.close();
+                    getPassword.close();
+                } else {
+                    ps.setString(4, passwordHash.hashPassword(passwordInput));
                 }
-            }
-        }
+                ps.setString(5, role);
+                ps.setInt(6, userId);
 
+                int rowsUpdated = ps.executeUpdate();
+                JOptionPane.showMessageDialog(this, "Update successful!");
+                ((javax.swing.table.DefaultTableModel) userTable.getModel()).setValueAt(name, selectedRow, 1);
+                ((javax.swing.table.DefaultTableModel) userTable.getModel()).setValueAt(email, selectedRow, 2);
+                ((javax.swing.table.DefaultTableModel) userTable.getModel()).setValueAt(username, selectedRow, 3);
+                ((javax.swing.table.DefaultTableModel) userTable.getModel()).setValueAt(role, selectedRow, 4);
+                loadUserData();
+
+                ps.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("EXCEPTION CLASS: " + e.getClass().getName());
+                JOptionPane.showMessageDialog(this, "failed to update: " + e.getMessage());
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "choose user u want to update the data");
+        }
     }//GEN-LAST:event_jButton2MouseClicked
 
     private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed

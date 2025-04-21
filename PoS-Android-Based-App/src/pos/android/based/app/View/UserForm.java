@@ -82,6 +82,7 @@ public class UserForm extends javax.swing.JFrame {
         jButton7 = new javax.swing.JButton();
         jinvalid = new javax.swing.JLabel();
         jBack2 = new javax.swing.JButton();
+        jRegex = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setPreferredSize(new java.awt.Dimension(1280, 720));
@@ -168,6 +169,8 @@ public class UserForm extends javax.swing.JFrame {
             }
         });
 
+        jRegex.setForeground(new java.awt.Color(255, 0, 51));
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -195,7 +198,8 @@ public class UserForm extends javax.swing.JFrame {
                                     .addComponent(jinvalid, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(jPasswordField1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 306, Short.MAX_VALUE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jButton7))))
+                                .addComponent(jButton7))
+                            .addComponent(jRegex, javax.swing.GroupLayout.PREFERRED_SIZE, 175, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(258, 258, 258)
                         .addComponent(jLabel6))
@@ -215,18 +219,20 @@ public class UserForm extends javax.swing.JFrame {
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(18, 18, 18)
                 .addComponent(jLabel3)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(18, 18, 18)
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(1, 1, 1)
+                .addComponent(jRegex, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -235,7 +241,7 @@ public class UserForm extends javax.swing.JFrame {
                     .addComponent(jButton7, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jinvalid, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(131, Short.MAX_VALUE))
+                .addContainerGap(90, Short.MAX_VALUE))
         );
 
         getContentPane().add(jPanel1);
@@ -254,9 +260,9 @@ public class UserForm extends javax.swing.JFrame {
             int rows = ps.executeUpdate();
 
             if (rows > 0) {
-                JOptionPane.showMessageDialog(null, columnName + " berhasil diperbarui.");
+                JOptionPane.showMessageDialog(null, columnName + " successfuly updated");
             } else {
-                JOptionPane.showMessageDialog(null, "Gagal memperbarui " + columnName + ".");
+                JOptionPane.showMessageDialog(null, "failed to update " + columnName + ".");
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -269,7 +275,6 @@ public class UserForm extends javax.swing.JFrame {
         String email = jTextField3.getText();
         if (!email.isBlank()) {
             updateSingleField("email", email, userId);
-            JOptionPane.showMessageDialog(this, "Update successful!");
             loadUserData();
         } else {
             JOptionPane.showMessageDialog(this, "fulfill the field");
@@ -278,13 +283,19 @@ public class UserForm extends javax.swing.JFrame {
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         // TODO add your handling code here:
+        String usernameRegex = "^(?![_.])^(?!\\d)(?!.*[_.]{2})[a-zA-Z0-9._]{3,20}$";
+        
         String username = jTextField2.getText();
-        if (!username.isBlank()) {
+        if (!username.isBlank() && username.matches(usernameRegex)) {
             updateSingleField("username", username, userId);
-            JOptionPane.showMessageDialog(this, "Update successful!");
             loadUserData();
         } else {
-            JOptionPane.showMessageDialog(null, "fulfill the field");
+            if(!username.isBlank()){
+                JOptionPane.showMessageDialog(null, "fulfill the field");
+            }
+            else if (!username.matches(usernameRegex)){
+                jRegex.setText("Username is invalid");
+            }
         }
     }//GEN-LAST:event_jButton3ActionPerformed
 
@@ -294,7 +305,6 @@ public class UserForm extends javax.swing.JFrame {
         if (!password.isBlank()) {
             String hashedPassword = passwordHash.hashPassword(password);
             updateSingleField("password", hashedPassword, userId);
-            JOptionPane.showMessageDialog(this, "Update successful!");
         } else {
             JOptionPane.showMessageDialog(null, "fulfill the field");
         }
@@ -359,6 +369,7 @@ public class UserForm extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPasswordField jPasswordField1;
+    private javax.swing.JLabel jRegex;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
     private javax.swing.JTextField jTextField3;
