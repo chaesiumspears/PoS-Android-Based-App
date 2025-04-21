@@ -15,6 +15,7 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import pos.android.based.app.DatabaseConnection;
@@ -121,13 +122,17 @@ public class ProductService {
             stmt.setString(5, "bundle");
             stmt.executeUpdate();
         }   
-        String insertItem = "INSERT INTO bundle_items(bundle_id, item_id) VALUES (?, ?)";
+        String insertItem = "INSERT INTO bundle_items(bundle_id, item_id, quantity) VALUES (?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(insertItem)) {
-            for (Product item : items) {
+            Map<String, Long> itemCountMap = items.stream()
+                        .collect(Collectors.groupingBy(Product::getId, Collectors.counting()));
+
+            for (Map.Entry<String, Long> entry : itemCountMap.entrySet()) {
                 stmt.setString(1, bundleID);
-                stmt.setString(2, item.getId());
+                stmt.setString(2, entry.getKey());
+                stmt.setInt(3, entry.getValue().intValue()); // jumlah produk
                 stmt.addBatch();
-            }
+}
             stmt.executeBatch();
         }
         String insertSummary = "INSERT INTO bundle_summary(bundle_id, bundle_name, product_count, item_ids, normal_price, bundle_price) " +
@@ -150,11 +155,6 @@ public class ProductService {
     }
 }
 
-
-
-    
-    
-    
 
     public static boolean updateProduct(String id, String name, double price, int stock, String type, LocalDate expiryDate) {
     String sql = "UPDATE products SET name = ?, price = ?, stock = ?, type = ?, expiry_date = ? WHERE id = ?";
@@ -193,21 +193,26 @@ public class ProductService {
     }
     
     
-    private static List<Product> getItemsForBundle(String bundleId) throws SQLException, MalformedURLException {
+     private static List<Product> getItemsForBundle(String bundleId) throws SQLException, MalformedURLException {
     List<Product> items = new ArrayList<>();
-    String query = "SELECT p.* FROM products p JOIN bundle_items b ON p.id = b.item_id WHERE b.bundle_id = ?";
+    String query = "SELECT p.*, b.quantity FROM products p \n" +
+                   "JOIN bundle_items b ON p.id = b.item_id \n" +
+                   "WHERE b.bundle_id = ?";
     try (Connection conn = DatabaseConnection.connect();
          PreparedStatement stmt = conn.prepareStatement(query)) {
         stmt.setString(1, bundleId);
         ResultSet rs = stmt.executeQuery();
 
         while (rs.next()) {
+            int qty = rs.getInt("quantity");
+            for (int i = 0; i < qty; i++) {
             items.add(new Product(
                 rs.getString("id"),
                 rs.getString("name"),
                 rs.getDouble("price"),
                 rs.getString("type")
             ));
+            }
         }
     }
     return items;
