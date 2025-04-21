@@ -193,21 +193,26 @@ public class ProductService {
     }
     
     
-    private static List<Product> getItemsForBundle(String bundleId) throws SQLException, MalformedURLException {
+     private static List<Product> getItemsForBundle(String bundleId) throws SQLException, MalformedURLException {
     List<Product> items = new ArrayList<>();
-    String query = "SELECT p.* FROM products p JOIN bundle_items b ON p.id = b.item_id WHERE b.bundle_id = ?";
+    String query = "SELECT p.*, b.quantity FROM products p \n" +
+                   "JOIN bundle_items b ON p.id = b.item_id \n" +
+                   "WHERE b.bundle_id = ?";
     try (Connection conn = DatabaseConnection.connect();
          PreparedStatement stmt = conn.prepareStatement(query)) {
         stmt.setString(1, bundleId);
         ResultSet rs = stmt.executeQuery();
 
         while (rs.next()) {
+            int qty = rs.getInt("quantity");
+            for (int i = 0; i < qty; i++) {
             items.add(new Product(
                 rs.getString("id"),
                 rs.getString("name"),
                 rs.getDouble("price"),
                 rs.getString("type")
             ));
+            }
         }
     }
     return items;
