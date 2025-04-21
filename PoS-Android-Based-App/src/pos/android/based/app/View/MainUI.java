@@ -4,7 +4,10 @@
  */
 package pos.android.based.app.View;
 
-import pos.android.based.app.ProductForm;
+import java.net.MalformedURLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import pos.android.based.app.View.ProductForm;
 
 /**
  *
@@ -18,14 +21,12 @@ public class MainUI extends javax.swing.JFrame {
     private String loggedInUsername;
     private String userRole;
 
-    public MainUI(String username,String role) {
+    public MainUI(String username, String role) {
         this.loggedInUsername = username;
         this.userRole = role;
         initComponents();
         
-        if (userRole.equalsIgnoreCase("admin")) {
-            ManageBtn.setVisible(false);
-        }
+        ManageBtn.setVisible("admin".equalsIgnoreCase(userRole));
     }
 
     /**
@@ -168,11 +169,15 @@ public class MainUI extends javax.swing.JFrame {
 
     private void productsBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_productsBtnActionPerformed
         // TODO add your handling code here:
-        ProductForm pd = new ProductForm();
-        pd.setVisible(true);
-        pd.pack();
-        pd.setLocationRelativeTo(null);
-        pd.setDefaultCloseOperation(ProductForm.EXIT_ON_CLOSE);
+        try {
+            ProductForm pd = new ProductForm(loggedInUsername, userRole);
+            pd.setVisible(true);
+            pd.pack();
+            pd.setLocationRelativeTo(null);
+            pd.setDefaultCloseOperation(javax.swing.JFrame.DISPOSE_ON_CLOSE); // Supaya tidak tutup aplikasi utama
+            } catch (MalformedURLException ex) {
+            Logger.getLogger(MainUI.class.getName()).log(Level.SEVERE, "Gagal membuka ProductForm", ex);
+        }
     }//GEN-LAST:event_productsBtnActionPerformed
 
     private void TransactionsBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TransactionsBtnActionPerformed
@@ -230,10 +235,8 @@ public class MainUI extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new MainUI().setVisible(true);
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            new MainUI("demoUser", "admin").setVisible(true);
         });
     }
 
