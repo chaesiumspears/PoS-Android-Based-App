@@ -192,7 +192,7 @@ private DefaultTableModel tableModel;
 
     private JTable createBundleSelectionTable() throws MalformedURLException {
     List<Product> productList = ProductService.getAllProducts();
-    String[] columns = {"ID", "Name", "Price", "Qty"};
+    String[] columns = {"ID", "Name", "Price", "Quantity"};
 
     DefaultTableModel tableModel = new DefaultTableModel(columns, 0) {
         @Override
