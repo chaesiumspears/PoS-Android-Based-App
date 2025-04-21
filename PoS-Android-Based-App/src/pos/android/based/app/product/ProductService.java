@@ -23,17 +23,18 @@ import pos.android.based.app.DatabaseConnection;
 public class ProductService {
     
     //GENERETE FORMAT ID
-    public static String generateProductID(Connection conn) throws SQLException {
+    public static String generateProductID(Connection conn, String prefix) throws SQLException {
         String lastID = "P0000";
-        String query = "SELECT id FROM products ORDER BY id DESC LIMIT 1";
-        try (PreparedStatement stmt = conn.prepareStatement(query);
-             ResultSet rs = stmt.executeQuery()) {
+        String query = "SELECT id FROM products WHERE id Like ? ORDER BY id DESC LIMIT 1";
+        try (PreparedStatement stmt = conn.prepareStatement(query)){
+            stmt.setString(1, prefix+"%");
+            ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 lastID = rs.getString("id");
             }
         }
         int num = Integer.parseInt(lastID.substring(1)) + 1;
-        return String.format("P%04d", num);
+        return String.format(prefix+"%04d", num);
     }
 
     //UNTUK MENAMBAH PRODUK TIDAK MEMILIKI KADALUARSA
@@ -47,7 +48,7 @@ public class ProductService {
         try (Connection conn = DatabaseConnection.connect();
              PreparedStatement stmt = conn.prepareStatement(query)) {
 
-            String id = generateProductID(conn);
+            String id = generateProductID(conn,"P");
 
             stmt.setString(1, id);
             stmt.setString(2, name);
@@ -81,7 +82,7 @@ public class ProductService {
     public static boolean addPerishable(String name, double price, int stock, LocalDate expiryDate) {
     String sql = "INSERT INTO products(id, name, price, stock, type, expiry_date) VALUES (?, ?, ?, ?, ?, ?)";
     try (Connection conn = DatabaseConnection.connect()) {
-        String id = generateProductID(conn);
+        String id = generateProductID(conn,"P");
         PreparedStatement stmt = conn.prepareStatement(sql);
         stmt.setString(1, id);
         stmt.setString(2, name);
@@ -105,16 +106,24 @@ public class ProductService {
    //MENAMBAH BUNDLE PRODUCT
    public static boolean addBundle(String name, double price, int stock, List<Product> items) {
     String bundleID = null;
-    try (Connection conn = DatabaseConnection.connect()) {
+    Connection conn = null;
+    try {
+        conn = DatabaseConnection.connect();
         conn.setAutoCommit(false);
-        bundleID = generateProductID(conn);
+        bundleID = generateProductID(conn,"B");
         double normalPrice = items.stream().mapToDouble(Product::getPrice).sum();
         int productCount = items.size();
         String itemIds = items.stream()
                 .map(Product::getId)
-                .collect(Collectors.joining(","));     
+                .collect(Collectors.joining(","));   
+        //insert bundle
         String insertBundleProduct = "INSERT INTO products(id, name, price, stock, type) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = conn.prepareStatement(insertBundleProduct)) {
+        try (PreparedStatement stmt = conn.prepareStatement(
+                insertBundleProduct,
+                ResultSet.TYPE_FORWARD_ONLY, 
+                ResultSet.CONCUR_READ_ONLY, 
+                Statement.NO_GENERATED_KEYS
+        )) {
             stmt.setString(1, bundleID);
             stmt.setString(2, name);
             stmt.setDouble(3, price); 
@@ -122,8 +131,14 @@ public class ProductService {
             stmt.setString(5, "bundle");
             stmt.executeUpdate();
         }   
+        //insert to database bundle_items
         String insertItem = "INSERT INTO bundle_items(bundle_id, item_id, quantity) VALUES (?, ?, ?)";
-        try (PreparedStatement stmt = conn.prepareStatement(insertItem)) {
+        try (PreparedStatement stmt = conn.prepareStatement(
+                insertItem,
+                ResultSet.TYPE_FORWARD_ONLY, 
+                ResultSet.CONCUR_READ_ONLY, 
+                Statement.NO_GENERATED_KEYS
+                )) {
             Map<String, Long> itemCountMap = items.stream()
                         .collect(Collectors.groupingBy(Product::getId, Collectors.counting()));
 
@@ -135,9 +150,15 @@ public class ProductService {
 }
             stmt.executeBatch();
         }
+        //insert to database bundle summary
         String insertSummary = "INSERT INTO bundle_summary(bundle_id, bundle_name, product_count, item_ids, normal_price, bundle_price) " +
                                "VALUES (?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = conn.prepareStatement(insertSummary)) {
+        try (PreparedStatement stmt = conn.prepareStatement(
+                insertSummary,
+                ResultSet.TYPE_FORWARD_ONLY, 
+                ResultSet.CONCUR_READ_ONLY, 
+                Statement.NO_GENERATED_KEYS
+        )) {
             stmt.setString(1, bundleID);
             stmt.setString(2, name);
             stmt.setInt(3, productCount);
@@ -148,13 +169,36 @@ public class ProductService {
         }
         conn.commit();
         return true;
-    } catch (SQLException e) {
-        System.err.println(" Error saat menambahkan bundle: " + e.getMessage());
-        e.printStackTrace();
+        } catch (SQLException e) {
+            System.err.println(" Error saat menambahkan bundle: " + e.getMessage());
+            e.printStackTrace();
+        
+        if (conn != null ){
+            try {
+                conn.rollback();
+                conn.close();
+            } catch (SQLException ex) {
+                System.err.println("Rollback gagal: "+ ex.getMessage());
+            }
+        }
         return false;
+    } finally {
+        if (conn != null) {
+            try {
+                conn.setAutoCommit(true);
+                conn.close();
+            } catch (SQLException ex) {
+                System.err.println("Penutupan koneksi gagal;"+ex.getMessage());
+            }
+        }
     }
 }
 
+
+
+    
+    
+    
 
     public static boolean updateProduct(String id, String name, double price, int stock, String type, LocalDate expiryDate) {
     String sql = "UPDATE products SET name = ?, price = ?, stock = ?, type = ?, expiry_date = ? WHERE id = ?";
@@ -193,7 +237,7 @@ public class ProductService {
     }
     
     
-     private static List<Product> getItemsForBundle(String bundleId) throws SQLException, MalformedURLException {
+    private static List<Product> getItemsForBundle(String bundleId) throws SQLException, MalformedURLException {
     List<Product> items = new ArrayList<>();
     String query = "SELECT p.*, b.quantity FROM products p \n" +
                    "JOIN bundle_items b ON p.id = b.item_id \n" +
@@ -277,18 +321,5 @@ public class ProductService {
             System.out.println("Get product by ID error: " + e.getMessage());
         }
         return null;
-    }
-    
-    public static boolean updateStock(String productId, int quantityChange) {
-        try (Connection conn = DatabaseConnection.connect();
-             PreparedStatement stmt = conn.prepareStatement("UPDATE products SET stock = stock + ? WHERE id = ?")) {
-            stmt.setInt(1, quantityChange); 
-            stmt.setString(2, productId);
-            int rowsUpdated = stmt.executeUpdate();
-            return rowsUpdated > 0;
-        } catch (SQLException e) {
-            System.out.println("Error updating stock: " + e.getMessage());
-            return false;
-        }
     }
 }
