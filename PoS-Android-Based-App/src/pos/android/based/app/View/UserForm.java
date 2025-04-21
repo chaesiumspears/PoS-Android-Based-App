@@ -6,8 +6,11 @@ package pos.android.based.app.View;
 
 import pos.android.based.app.DatabaseConnection;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import javax.swing.JOptionPane;
+import pos.android.based.app.passwordHash;
 
 /**
  *
@@ -16,8 +19,7 @@ import java.sql.ResultSet;
 public class UserForm extends javax.swing.JFrame {
 
     private String usernameLogin;
-    private String role;
-
+    private int userId;
 
     /**
      * Creates new form UserForm
@@ -27,7 +29,7 @@ public class UserForm extends javax.swing.JFrame {
     }
 
     public UserForm(String usernameLogin) {
-        initComponents(); // tetap wajib
+        initComponents();
         this.usernameLogin = usernameLogin;
         loadUserData();   // panggil method untuk isi text field
     }
@@ -35,12 +37,13 @@ public class UserForm extends javax.swing.JFrame {
     private void loadUserData() {
         try {
             Connection conn = DatabaseConnection.connect();
-            String sql = "SELECT name, email, username, password FROM users WHERE username = ?";
+            String sql = "SELECT id, name, email, username, password FROM users WHERE username = ?";
             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setString(1, usernameLogin);
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
+                userId = rs.getInt("id");
                 jTextField1.setText(rs.getString("name"));
                 jTextField3.setText(rs.getString("email"));
                 jTextField2.setText(rs.getString("username"));
@@ -75,8 +78,6 @@ public class UserForm extends javax.swing.JFrame {
         jTextField3 = new javax.swing.JTextField();
         jButton1 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
-        jButton5 = new javax.swing.JButton();
-        jButton6 = new javax.swing.JButton();
         jPasswordField1 = new javax.swing.JPasswordField();
         jButton7 = new javax.swing.JButton();
         jinvalid = new javax.swing.JLabel();
@@ -138,24 +139,6 @@ public class UserForm extends javax.swing.JFrame {
             }
         });
 
-        jButton5.setBackground(new java.awt.Color(250, 193, 217));
-        jButton5.setForeground(new java.awt.Color(30, 30, 30));
-        jButton5.setText("Update");
-        jButton5.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton5ActionPerformed(evt);
-            }
-        });
-
-        jButton6.setBackground(new java.awt.Color(250, 193, 217));
-        jButton6.setForeground(new java.awt.Color(30, 30, 30));
-        jButton6.setText("Delete");
-        jButton6.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton6ActionPerformed(evt);
-            }
-        });
-
         jPasswordField1.setBackground(new java.awt.Color(204, 204, 204));
         jPasswordField1.setForeground(new java.awt.Color(41, 44, 45));
 
@@ -212,18 +195,14 @@ public class UserForm extends javax.swing.JFrame {
                                     .addComponent(jinvalid, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(jPasswordField1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 306, Short.MAX_VALUE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jButton7)))
-                        .addGap(185, 185, 185)
-                        .addComponent(jButton5)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButton6))
+                                .addComponent(jButton7))))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(258, 258, 258)
                         .addComponent(jLabel6))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(16, 16, 16)
                         .addComponent(jBack2)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(148, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -252,13 +231,11 @@ public class UserForm extends javax.swing.JFrame {
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton6, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jPasswordField1, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton7, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jinvalid, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(291, Short.MAX_VALUE))
+                .addContainerGap(131, Short.MAX_VALUE))
         );
 
         getContentPane().add(jPanel1);
@@ -267,24 +244,60 @@ public class UserForm extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    //untuk update data ke database
+    private void updateSingleField(String columnName, String newValue, int userId) {
+        String sql = "UPDATE users SET " + columnName + " = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnection.connect(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, newValue);
+            ps.setInt(2, userId);
+            int rows = ps.executeUpdate();
+
+            if (rows > 0) {
+                JOptionPane.showMessageDialog(null, columnName + " berhasil diperbarui.");
+            } else {
+                JOptionPane.showMessageDialog(null, "Gagal memperbarui " + columnName + ".");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error: " + e.getMessage());
+        }
+    }
+
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
+        String email = jTextField3.getText();
+        if (!email.isBlank()) {
+            updateSingleField("email", email, userId);
+            JOptionPane.showMessageDialog(this, "Update successful!");
+            loadUserData();
+        } else {
+            JOptionPane.showMessageDialog(this, "fulfill the field");
+        }
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         // TODO add your handling code here:
+        String username = jTextField2.getText();
+        if (!username.isBlank()) {
+            updateSingleField("username", username, userId);
+            JOptionPane.showMessageDialog(this, "Update successful!");
+            loadUserData();
+        } else {
+            JOptionPane.showMessageDialog(null, "fulfill the field");
+        }
     }//GEN-LAST:event_jButton3ActionPerformed
-
-    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton5ActionPerformed
-
-    private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton6ActionPerformed
 
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
         // TODO add your handling code here:
+        String password = new String(jPasswordField1.getPassword());
+        if (!password.isBlank()) {
+            String hashedPassword = passwordHash.hashPassword(password);
+            updateSingleField("password", hashedPassword, userId);
+            JOptionPane.showMessageDialog(this, "Update successful!");
+        } else {
+            JOptionPane.showMessageDialog(null, "fulfill the field");
+        }
     }//GEN-LAST:event_jButton7ActionPerformed
 
     private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
@@ -297,14 +310,6 @@ public class UserForm extends javax.swing.JFrame {
 
     private void jBack2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBack2ActionPerformed
         // TODO add your handling code here:
-        String role = rs.getString("role");
-        // ke homepage
-        MainUI main = new MainUI(username, role);
-        main.setVisible(true);
-        main.pack();
-        main.setLocationRelativeTo(null);
-        main.setDefaultCloseOperation(MainUI.EXIT_ON_CLOSE);
-        this.dispose();
     }//GEN-LAST:event_jBack2ActionPerformed
 
     /**
@@ -346,8 +351,6 @@ public class UserForm extends javax.swing.JFrame {
     private javax.swing.JButton jBack2;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton5;
-    private javax.swing.JButton jButton6;
     private javax.swing.JButton jButton7;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
