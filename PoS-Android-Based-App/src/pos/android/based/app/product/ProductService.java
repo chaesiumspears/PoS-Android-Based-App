@@ -1,13 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package pos.android.based.app.product;
-
-/**
- *
- * @author Desi
- */
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -17,251 +8,198 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import pos.android.based.app.DatabaseConnection;
 
 public class ProductService {
-    
-    //GENERETE FORMAT ID
+
     public static String generateProductID(Connection conn, String prefix) throws SQLException {
-        String lastID = "P0000";
+        String lastID = prefix + "0000";
         String query = "SELECT id FROM products WHERE id Like ? ORDER BY id DESC LIMIT 1";
-        try (PreparedStatement stmt = conn.prepareStatement(query)){
-            stmt.setString(1, prefix+"%");
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, prefix + "%");
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 lastID = rs.getString("id");
             }
         }
         int num = Integer.parseInt(lastID.substring(1)) + 1;
-        return String.format(prefix+"%04d", num);
+        return String.format(prefix + "%04d", num);
     }
 
-    //UNTUK MENAMBAH PRODUK TIDAK MEMILIKI KADALUARSA
-    public static boolean addNonPerishable(String name, double price, int stock) {
-    return addGeneralProduct(name, price, stock, "Non-Perishable", null, null, null);
+    //tambah produk
+   public static boolean addProduct(Product p) {
+    if (p instanceof BundleProduct bundle) {
+        return addBundle(bundle);
     }
-    private static boolean addGeneralProduct(String name, double price, int stock, String type,
-                                             LocalDate expiryDate, String url, String vendorName) {
-        String query = "INSERT INTO products(id, name, price, stock, type, expiry_date, url, vendor_name) " +
-         "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = DatabaseConnection.connect();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
 
-            String id = generateProductID(conn,"P");
+    String query = "INSERT INTO products(id, name, price, stock, type, expiry_date, url, vendor_name) " +
+                   "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
+    try (Connection conn = DatabaseConnection.connect()) {
+        conn.setAutoCommit(false);
+
+        String id = generateProductID(conn, "P");
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, id);
-            stmt.setString(2, name);
-            stmt.setDouble(3, price);
-            stmt.setInt(4, stock);
-            stmt.setString(5, type);
-            
-            if (expiryDate != null) {
-                stmt.setDate(6, java.sql.Date.valueOf(expiryDate));
+            stmt.setString(2, p.getName());
+            stmt.setDouble(3, p.getPrice());
+            stmt.setInt(4, p.getStock() != null ? p.getStock() : 0);
+            stmt.setString(5, p.getType());
+
+            if (p instanceof PerishableProduct perish) {
+                stmt.setDate(6, java.sql.Date.valueOf(perish.getExpiryDate()));
             } else {
                 stmt.setNull(6, java.sql.Types.DATE);
             }
-             stmt.setString(7, url);
-             stmt.setString(8, vendorName);
-
-            int rowsAffected = stmt.executeUpdate();
-            if (rowsAffected > 0) {
-            System.out.println("Product added to database successfully.");
+            if (p instanceof DigitalProduct digital) {
+                stmt.setString(7, digital.getUrl().toString());
+                stmt.setString(8, digital.getVendorName());
             } else {
-            System.out.println("No rows affected, product not added.");
+                stmt.setNull(7, java.sql.Types.VARCHAR);
+                stmt.setNull(8, java.sql.Types.VARCHAR);
             }
-            return rowsAffected > 0;
-        } catch (SQLException e) {
-            System.out.println("Add product error: " + e.getMessage());
+            stmt.executeUpdate();
+        }
+        conn.commit();
+        return true;
+    } catch (Exception e) {
+        System.out.println("Add product error: " + e.getMessage());
+        e.printStackTrace();
+        return false;
+    }
+    }
+   
+   //bundle
+    private static boolean addBundle(BundleProduct p) {
+        try (Connection conn = DatabaseConnection.connect()) {
+            conn.setAutoCommit(false);
+
+            String bundleID = generateProductID(conn, "B");
+            double normalPrice = p.getItems().stream().mapToDouble(Product::getPrice).sum();
+            int productCount = p.getItems().size();
+            String itemIds = p.getItems().stream()
+                    .map(Product::getId)
+                    .collect(Collectors.joining(","));
+
+            String insertBundleProduct = "INSERT INTO products(id, name, price, stock, type) VALUES (?, ?, ?, ?, ?)";
+            try (PreparedStatement stmt = conn.prepareStatement(insertBundleProduct)) {
+                stmt.setString(1, bundleID);
+                stmt.setString(2, p.getName());
+                stmt.setDouble(3, p.getPrice());
+                stmt.setInt(4, p.getStock() != null ? p.getStock() : 0);
+                stmt.setString(5, "bundle");
+                stmt.executeUpdate();
+            }
+
+            String insertItem = "INSERT INTO bundle_items(bundle_id, item_id, quantity) VALUES (?, ?, ?)";
+            try (PreparedStatement stmt = conn.prepareStatement(insertItem)) {
+                Map<String, Long> itemCountMap = p.getItems().stream()
+                        .collect(Collectors.groupingBy(Product::getId, Collectors.counting()));
+                for (Map.Entry<String, Long> entry : itemCountMap.entrySet()) {
+                    stmt.setString(1, bundleID);
+                    stmt.setString(2, entry.getKey());
+                    stmt.setInt(3, entry.getValue().intValue());
+                    stmt.addBatch();
+                }
+                stmt.executeBatch();
+            }
+
+            String insertSummary = "INSERT INTO bundle_summary(bundle_id, bundle_name, product_count, item_ids, normal_price, bundle_price) VALUES (?, ?, ?, ?, ?, ?)";
+            try (PreparedStatement stmt = conn.prepareStatement(insertSummary)) {
+                stmt.setString(1, bundleID);
+                stmt.setString(2, p.getName());
+                stmt.setInt(3, productCount);
+                stmt.setString(4, itemIds);
+                stmt.setDouble(5, normalPrice);
+                stmt.setDouble(6, p.getPrice());
+                stmt.executeUpdate();
+            }
+
+            conn.commit();
+            return true;
+        } catch (Exception e) {
+            System.err.println("Error saat menambahkan bundle: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
     }
 
-    //UNTUK MENAMBAH PRODUK YANG MEMILIKI KADALUARSA
-    public static boolean addPerishable(String name, double price, int stock, LocalDate expiryDate) {
-    String sql = "INSERT INTO products(id, name, price, stock, type, expiry_date) VALUES (?, ?, ?, ?, ?, ?)";
-    try (Connection conn = DatabaseConnection.connect()) {
-        String id = generateProductID(conn,"P");
-        PreparedStatement stmt = conn.prepareStatement(sql);
-        stmt.setString(1, id);
-        stmt.setString(2, name);
-        stmt.setDouble(3, price);
-        stmt.setInt(4, stock);
-        stmt.setString(5, "perishable");
-        stmt.setDate(6, java.sql.Date.valueOf(expiryDate));
-        int result = stmt.executeUpdate();
-        return result > 0;
-    } catch (SQLException e) {
-        e.printStackTrace();
-        return false;
-    }
-}
+    //update
+        public boolean updateProduct(Product p) {
+    String sql = "UPDATE products SET name = ?, price = ?, stock = ?, type = ?, expiry_date = ?, url = ?, vendor_name = ? WHERE id = ?";
 
-    //MENAMBAH PRODUK DIGITAL
-    public static boolean addDigital(String name, double price, int stock, URL url, String vendor) {
-        return addGeneralProduct(name, price, stock, "digital", null, url.toString(), vendor);
-    }
-
-   //MENAMBAH BUNDLE PRODUCT
-   public static boolean addBundle(String name, double price, int stock, List<Product> items) {
-    String bundleID = null;
-    Connection conn = null;
-    try {
-        conn = DatabaseConnection.connect();
-        conn.setAutoCommit(false);
-        bundleID = generateProductID(conn,"B");
-        double normalPrice = items.stream().mapToDouble(Product::getPrice).sum();
-        int productCount = items.size();
-        String itemIds = items.stream()
-                .map(Product::getId)
-                .collect(Collectors.joining(","));   
-        //insert bundle
-        String insertBundleProduct = "INSERT INTO products(id, name, price, stock, type) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = conn.prepareStatement(
-                insertBundleProduct,
-                ResultSet.TYPE_FORWARD_ONLY, 
-                ResultSet.CONCUR_READ_ONLY, 
-                Statement.NO_GENERATED_KEYS
-        )) {
-            stmt.setString(1, bundleID);
-            stmt.setString(2, name);
-            stmt.setDouble(3, price); 
-            stmt.setInt(4, stock);
-            stmt.setString(5, "bundle");
-            stmt.executeUpdate();
-        }   
-        //insert to database bundle_items
-        String insertItem = "INSERT INTO bundle_items(bundle_id, item_id, quantity) VALUES (?, ?, ?)";
-        try (PreparedStatement stmt = conn.prepareStatement(
-                insertItem,
-                ResultSet.TYPE_FORWARD_ONLY, 
-                ResultSet.CONCUR_READ_ONLY, 
-                Statement.NO_GENERATED_KEYS
-                )) {
-            Map<String, Long> itemCountMap = items.stream()
-                        .collect(Collectors.groupingBy(Product::getId, Collectors.counting()));
-
-            for (Map.Entry<String, Long> entry : itemCountMap.entrySet()) {
-                stmt.setString(1, bundleID);
-                stmt.setString(2, entry.getKey());
-                stmt.setInt(3, entry.getValue().intValue()); // jumlah produk
-                stmt.addBatch();
-}
-            stmt.executeBatch();
-        }
-        //insert to database bundle summary
-        String insertSummary = "INSERT INTO bundle_summary(bundle_id, bundle_name, product_count, item_ids, normal_price, bundle_price) " +
-                               "VALUES (?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = conn.prepareStatement(
-                insertSummary,
-                ResultSet.TYPE_FORWARD_ONLY, 
-                ResultSet.CONCUR_READ_ONLY, 
-                Statement.NO_GENERATED_KEYS
-        )) {
-            stmt.setString(1, bundleID);
-            stmt.setString(2, name);
-            stmt.setInt(3, productCount);
-            stmt.setString(4, itemIds);
-            stmt.setDouble(5, normalPrice);
-            stmt.setDouble(6, price);
-            stmt.executeUpdate();
-        }
-        conn.commit();
-        return true;
-        } catch (SQLException e) {
-            System.err.println(" Error saat menambahkan bundle: " + e.getMessage());
-            e.printStackTrace();
-        
-        if (conn != null ){
-            try {
-                conn.rollback();
-                conn.close();
-            } catch (SQLException ex) {
-                System.err.println("Rollback gagal: "+ ex.getMessage());
-            }
-        }
-        return false;
-    } finally {
-        if (conn != null) {
-            try {
-                conn.setAutoCommit(true);
-                conn.close();
-            } catch (SQLException ex) {
-                System.err.println("Penutupan koneksi gagal;"+ex.getMessage());
-            }
-        }
-    }
-}
-
-
-
-    
-    
-    
-
-    public static boolean updateProduct(String id, String name, double price, int stock, String type, LocalDate expiryDate) {
-    String sql = "UPDATE products SET name = ?, price = ?, stock = ?, type = ?, expiry_date = ? WHERE id = ?";
     try (Connection conn = DatabaseConnection.connect();
          PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-        stmt.setString(1, name);
-        stmt.setDouble(2, price);
-        stmt.setInt(3, stock);
-        stmt.setString(4, type);
-        if ("Perishable".equals(type)) {
-            stmt.setDate(5, java.sql.Date.valueOf(expiryDate));
+        stmt.setString(1, p.getName());
+        stmt.setDouble(2, p.getPrice());
+        stmt.setInt(3, p.getStock());
+        stmt.setString(4, p.getType());
+
+        if (p instanceof PerishableProduct perish) {
+            stmt.setDate(5, java.sql.Date.valueOf(perish.getExpiryDate()));
         } else {
             stmt.setNull(5, java.sql.Types.DATE);
         }
-        stmt.setString(6, id);
 
+        if (p instanceof DigitalProduct digital) {
+            stmt.setString(6, digital.getUrl().toString());
+            stmt.setString(7, digital.getVendorName());
+        } else {
+            stmt.setNull(6, java.sql.Types.VARCHAR);
+            stmt.setNull(7, java.sql.Types.VARCHAR);
+        }
+
+        stmt.setString(8, p.getId());
         return stmt.executeUpdate() > 0;
+
     } catch (SQLException e) {
         e.printStackTrace();
         return false;
     }
 }
 
-    //UNTUK MENGHAPUS PRODUK
+
+    //delete
     public static boolean deleteProduct(String id) {
         String sql = "DELETE FROM products WHERE id = ?";
-    try (Connection conn = DatabaseConnection.connect();
-         PreparedStatement stmt = conn.prepareStatement(sql)) {
-        stmt.setString(1, id);
-        return stmt.executeUpdate() > 0;
-    } catch (SQLException e) {
-        e.printStackTrace();
-        return false;
-    }
-    }
-    
-    
-    private static List<Product> getItemsForBundle(String bundleId) throws SQLException, MalformedURLException {
-    List<Product> items = new ArrayList<>();
-    String query = "SELECT p.*, b.quantity FROM products p \n" +
-                   "JOIN bundle_items b ON p.id = b.item_id \n" +
-                   "WHERE b.bundle_id = ?";
-    try (Connection conn = DatabaseConnection.connect();
-         PreparedStatement stmt = conn.prepareStatement(query)) {
-        stmt.setString(1, bundleId);
-        ResultSet rs = stmt.executeQuery();
+        try (Connection conn = DatabaseConnection.connect();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+         
+            stmt.setString(1, id);
+            int affectedRows = stmt.executeUpdate(); // hanya sekali
+            return affectedRows > 0;
 
-        while (rs.next()) {
-            int qty = rs.getInt("quantity");
-            for (int i = 0; i < qty; i++) {
-            items.add(new Product(
-                rs.getString("id"),
-                rs.getString("name"),
-                rs.getDouble("price"),
-                rs.getString("type")
-            ));
-            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
     }
-    return items;
-}
+    
+    private static List<Product> getItemsForBundle(String bundleId) throws SQLException, MalformedURLException {
+        List<Product> items = new ArrayList<>();
+        String query = "SELECT p.*, b.quantity FROM products p " +
+                       "JOIN bundle_items b ON p.id = b.item_id " +
+                       "WHERE b.bundle_id = ?";
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, bundleId);
+            ResultSet rs = stmt.executeQuery();
 
+            while (rs.next()) {
+                int qty = rs.getInt("quantity");
+                for (int i = 0; i < qty; i++) {
+                    items.add(new Product(
+                        rs.getString("id"),
+                        rs.getString("name"),
+                        rs.getDouble("price"),
+                        rs.getString("type")
+                    ));
+                }
+            }
+        }
+        return items;
+    }
 
     public static List<Product> getAllProducts() throws MalformedURLException {
         List<Product> products = new ArrayList<>();
@@ -277,11 +215,11 @@ public class ProductService {
                 int stock = rs.getInt("stock");
                 String type = rs.getString("type");
 
-                 Product p = switch (type) {
-                case "perishable" -> new PerishableProduct(id, name, stock, price, LocalDate.parse(rs.getString("expiry_date")));
-                case "digital" -> new DigitalProduct(id, name, price, new URL(rs.getString("url")), rs.getString("vendor_name"));
-                case "bundle" -> new BundleProduct(id, name, price, getItemsForBundle(id)); //
-                default -> new NonPerishableProduct(id, name, price, stock);
+                Product p = switch (type.toLowerCase()) {
+                    case "perishable" -> new PerishableProduct(id, name, stock, price, LocalDate.parse(rs.getString("expiry_date")));
+                    case "digital" -> new DigitalProduct(id, name, price, new URL(rs.getString("url")), rs.getString("vendor_name"));
+                    case "bundle" -> new BundleProduct(id, name, price, getItemsForBundle(id));
+                    default -> new NonPerishableProduct(id, name, price, stock);
                 };
 
                 if (p != null) products.add(p);
@@ -292,7 +230,6 @@ public class ProductService {
         return products;
     }
 
-    //Produk ID
     public static Product getProductById(String id) {
         String query = "SELECT * FROM products WHERE id = ?";
         try (Connection conn = DatabaseConnection.connect();
@@ -307,13 +244,10 @@ public class ProductService {
                 int stock = rs.getInt("stock");
                 String type = rs.getString("type");
 
-                return switch (type) {
-                    case "perishable" -> new PerishableProduct(id, name, stock, price,
-                            LocalDate.parse(rs.getString("expiry_date")));
-                    case "digital" -> new DigitalProduct(id, name, price,
-                            new URL(rs.getString("url")),
-                            rs.getString("vendor_name"));
-                    case "bundle" -> new BundleProduct(id, name, price, getItemsForBundle(id)); //
+                return switch (type.toLowerCase()) {
+                    case "perishable" -> new PerishableProduct(id, name, stock, price, LocalDate.parse(rs.getString("expiry_date")));
+                    case "digital" -> new DigitalProduct(id, name, price, new URL(rs.getString("url")), rs.getString("vendor_name"));
+                    case "bundle" -> new BundleProduct(id, name, price, getItemsForBundle(id));
                     default -> new NonPerishableProduct(id, name, price, stock);
                 };
             }
