@@ -190,20 +190,22 @@ public class MainUI extends javax.swing.JFrame {
 
     private void usersBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_usersBtnActionPerformed
         // TODO add your handling code here:
-        UserForm us = new UserForm(loggedInUsername);
+        UserForm us = new UserForm();
         us.setVisible(true);
         us.pack();
         us.setLocationRelativeTo(null);
         us.setDefaultCloseOperation(ProductForm.EXIT_ON_CLOSE);
+        this.dispose();
     }//GEN-LAST:event_usersBtnActionPerformed
 
     private void ManageBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ManageBtnActionPerformed
         // TODO add your handling code here:
-        ManageUserForm mu = new ManageUserForm();
+        ManageUserForm mu = new ManageUserForm("demoUser", "admin");
         mu.setVisible(true);
         mu.pack();
         mu.setLocationRelativeTo(null);
         mu.setDefaultCloseOperation(ProductForm.EXIT_ON_CLOSE);
+        this.dispose();
     }//GEN-LAST:event_ManageBtnActionPerformed
 
     /**
