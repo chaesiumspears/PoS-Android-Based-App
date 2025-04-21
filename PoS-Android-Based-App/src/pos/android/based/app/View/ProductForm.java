@@ -26,60 +26,35 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import pos.android.based.app.View.MainUI;
+import static pos.android.based.app.View.ManageUserForm.role;
+import static pos.android.based.app.View.ManageUserForm.username;
+
 
 public class ProductForm extends JFrame {
  
 private DefaultTableModel tableModel;
+private String loggedInUsername;
+private String userRole;
     
-    public ProductForm() throws MalformedURLException {
+    public ProductForm(String username, String role) throws MalformedURLException {      
         setTitle("Product Management");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(600, 400);
         setLocationRelativeTo(null);
+        this.loggedInUsername = username;
+        this.userRole = role;
         initComponents();
         productTypeComboBoxActionPerformed(null);     
         String[] columnNames = {"ID", "Name", "Price", "Stock","Vendor","URL","Type"};
         tableModel = new DefaultTableModel(columnNames, 0);
         productTable.setModel(tableModel);
         loadProduct();
+
        
     }
     
-    //TAMBAH PRODUK
- private void addProduct(ActionEvent evt) throws MalformedURLException {
-    String name = productNameField.getText();
-    double price = Double.parseDouble(productPriceField.getText());
-    int stock = Integer.parseInt(productStockField.getText());
-    String type = (String) productTypeComboBox.getSelectedItem();
-    LocalDate expiryDate = null;
-    if ("Perishable".equals(type)) {
-        expiryDate = expiryDateChooser.getDate().toInstant().atZone(java.time.ZoneOffset.UTC).toLocalDate();
-    }
-    boolean success = false;
-    switch (type) {
-        case "Non-Perishable":
-            success = ProductService.addNonPerishable(name, price, stock);
-            break;
-        case "Perishable":
-            success = ProductService.addPerishable(name, price, stock, expiryDate);
-            break;
-        case "Digital":
-            try {
-                URL url = new URL("https://somevendor.com/product");
-                success = ProductService.addDigital(name, price, stock, url, "VendorX");
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Invalid URL.");
-                ex.printStackTrace();
-            }
-            break;
-    }
-    if (success) {
-        JOptionPane.showMessageDialog(this, "Product added successfully!");
-        loadProduct();  
-    } else {
-        JOptionPane.showMessageDialog(this, "Error adding product.");
-    }
-}
+    
  //hapus product
     private void deleteProduct (ActionEvent evt) throws MalformedURLException {
     int selectedRow = productTable.getSelectedRow();
@@ -345,6 +320,7 @@ private DefaultTableModel tableModel;
         jLabel8 = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
         addToBundleButton = new javax.swing.JButton();
+        BackButton = new javax.swing.JButton();
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -486,6 +462,15 @@ private DefaultTableModel tableModel;
             }
         });
 
+        BackButton.setBackground(new java.awt.Color(250, 193, 217));
+        BackButton.setForeground(new java.awt.Color(0, 0, 0));
+        BackButton.setText("Back");
+        BackButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                BackButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -534,7 +519,9 @@ private DefaultTableModel tableModel;
                             .addComponent(expiryDateChooser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap())
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
+                .addGap(25, 25, 25)
+                .addComponent(BackButton, javax.swing.GroupLayout.PREFERRED_SIZE, 68, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jLabel5)
                 .addGap(229, 229, 229))
         );
@@ -543,8 +530,13 @@ private DefaultTableModel tableModel;
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(24, 24, 24)
-                        .addComponent(jLabel5)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGap(24, 24, 24)
+                                .addComponent(jLabel5))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(BackButton)))
                         .addGap(26, 26, 26)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(productStockField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -604,71 +596,78 @@ private DefaultTableModel tableModel;
 
     //untuk tombol add product
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
-        String name = productNameField.getText();
-        double price = Double.parseDouble(productPriceField.getText());
-        int stock = Integer.parseInt(productStockField.getText());
+        String name = productNameField.getText().trim();
+        String priceStr = productPriceField.getText().trim().replace(",", ".");
+        String stockStr = productStockField.getText().trim();
         String type = (String) productTypeComboBox.getSelectedItem();
-        LocalDate expiryDate = null;
-        
-        if ("Perishable".equals(type)) {
-            if (expiryDateChooser.getDate() == null) {
-                JOptionPane.showMessageDialog(this, "Please select an expiration date.");
-                return;
-            }
-            expiryDate = expiryDateChooser.getDate().toInstant()
-                .atZone(java.time.ZoneId.systemDefault())
-                .toLocalDate();
-        } else {
-        expiryDate = null; 
-        }        
-        boolean success = false;
-        System.out.println("ADD PERISHABLE:");
-        System.out.println("Name: " + name);
-        System.out.println("Price: " + price);
-        System.out.println("Stock: " + stock);
-        System.out.println("Type: " + type);
-        System.out.println("Expiry: " + expiryDate);
-        switch (type) {
-        case "Non-Perishable":
-            success = ProductService.addNonPerishable(name, price, stock);
-            break;
-        case "Perishable":
-            success = ProductService.addPerishable(name, price, stock, expiryDate);
-            break;
-        case "Digital":
-            try {
-        String urlStr = urlField.getText().trim();
-        String vendor = vendorField.getText().trim();
-        if (urlStr.isEmpty() || vendor.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "URL dan Vendor harus diisi untuk produk digital.");
+
+        if (name.isEmpty() || priceStr.isEmpty() || stockStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nama, harga, dan stok harus diisi.");
             return;
         }
-        URL url = new URL(urlStr);
-        success = ProductService.addDigital(name, price, stock, url, vendor);
-    } catch (MalformedURLException e) {
-        JOptionPane.showMessageDialog(this, "Format URL tidak valid.");
+
+        double price;
+        int stock;
+
+        try {
+            price = Double.parseDouble(priceStr);
+            stock = Integer.parseInt(stockStr);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Format harga atau stok tidak valid.");
         return;
-    }
-            break;
-    }
-    if (success) {
-        JOptionPane.showMessageDialog(this, "Product added successfully!");
-          try {  
-                loadProduct();
-            } catch (MalformedURLException ex) {
-                Logger.getLogger(ProductForm.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        productNameField.setText("");
-        productPriceField.setText("");
-        productStockField.setText("");
-        urlField.setText("");
-        vendorField.setText("");
-        productTypeComboBox.setSelectedIndex(0);  
-        expiryDateChooser.setDate(null);  
-    } else {
-        JOptionPane.showMessageDialog(this, "Error adding product.");
+        }
+
+        LocalDate expiryDate = null;
+        boolean success = false;
+
+        switch (type) {
+            case "Non-Perishable":
+                success = ProductService.addNonPerishable(name, price, stock);
+                break;
+            case "Perishable":
+                if (expiryDateChooser.getDate() == null) {
+                    JOptionPane.showMessageDialog(this, "Silakan pilih tanggal kadaluarsa.");
+                    return;
+                }
+                expiryDate = expiryDateChooser.getDate().toInstant()
+                            .atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+                success = ProductService.addPerishable(name, price, stock, expiryDate);
+                break;
+            case "Digital":
+                String urlStr = urlField.getText().trim();
+                String vendor = vendorField.getText().trim();
+
+                if (urlStr.isEmpty() || vendor.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "URL dan Vendor harus diisi untuk produk digital.");
+                    return;
+                }
+                try {
+                    URL url = new URL(urlStr);
+                    success = ProductService.addDigital(name, price, stock, url, vendor);
+                } catch (MalformedURLException e) {
+                    JOptionPane.showMessageDialog(this, "Format URL tidak valid.");
+                    return;
+                }
+                break;
+        }
+        if (success) {
+            JOptionPane.showMessageDialog(this, "Product added successfully!");
+            try {  
+                    loadProduct();
+                } catch (MalformedURLException ex) {
+                    Logger.getLogger(ProductForm.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            productNameField.setText("");
+            productPriceField.setText("");
+            productStockField.setText("");
+            urlField.setText("");
+            vendorField.setText("");
+            productTypeComboBox.setSelectedIndex(0);  
+            expiryDateChooser.setDate(null);  
+        } else {
+            JOptionPane.showMessageDialog(this, "Error adding product.");
     
-    }
+        }
     
     }//GEN-LAST:event_addButtonActionPerformed
 
@@ -728,6 +727,12 @@ private DefaultTableModel tableModel;
         // TODO add your handling code here:
     }//GEN-LAST:event_productNameFieldActionPerformed
 
+    private void BackButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BackButtonActionPerformed
+        // TODO add your handling code here:
+        new MainUI(loggedInUsername, userRole).setVisible(true);
+        dispose();
+    }//GEN-LAST:event_BackButtonActionPerformed
+
   
 
     /**
@@ -762,7 +767,9 @@ private DefaultTableModel tableModel;
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
-                    new ProductForm().setVisible(true);
+                    String username = "demoUser";
+                    String role = "admin";
+                    new ProductForm(username,role).setVisible(true);
                 } catch (MalformedURLException ex) {
                     Logger.getLogger(ProductForm.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -773,6 +780,7 @@ private DefaultTableModel tableModel;
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton BackButton;
     private javax.swing.JButton addButton;
     private javax.swing.JButton addToBundleButton;
     private javax.swing.JButton deleteButton;
