@@ -131,6 +131,41 @@ public class ProductService {
         }
     }
 
+public static List<ProductActivityLog> getProductActivityLogs() {
+    List<ProductActivityLog> logs = new ArrayList<>();
+    
+    String query = "SELECT pal.log_id, pal.product_id, p.name as product_name, " +
+                  "pal.action_type, pal.action_details, pal.performed_by, pal.performed_at " +
+                  "FROM product_activity_log pal " +
+                  "JOIN products p ON pal.product_id = p.id " +
+                  "ORDER BY pal.performed_at DESC";
+
+    try (Connection conn = DatabaseConnection.connect();
+         Statement stmt = conn.createStatement();
+         ResultSet rs = stmt.executeQuery(query)) {
+
+        while (rs.next()) {
+            ProductActivityLog log = new ProductActivityLog(
+                rs.getInt("log_id"),
+                rs.getString("product_id"),
+                rs.getString("product_name"),
+                rs.getString("action_type"),
+                rs.getString("action_details"),
+                rs.getString("performed_by"),
+                rs.getTimestamp("performed_at").toLocalDateTime()
+            );
+            logs.add(log);
+        }
+    } catch (SQLException e) {
+        System.err.println("[ProductService] Error fetching activity logs: ");
+        e.printStackTrace();
+    }
+    return logs;
+}
+
+ 
+
+
     //update data produk berdasarkan ID
     public boolean updateProduct(Product p) {
     String sql = "UPDATE products SET name = ?, price = ?, stock = ?, type = ?, expiry_date = ?, url = ?, vendor_name = ? WHERE id = ?"; //SQL
