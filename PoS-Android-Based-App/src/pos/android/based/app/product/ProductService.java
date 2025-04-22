@@ -192,6 +192,7 @@ public class ProductService {
                     items.add(new Product(
                         rs.getString("id"),
                         rs.getString("name"),
+                        rs.getInt("stock"),
                         rs.getDouble("price"),
                         rs.getString("type")
                     ));
@@ -217,8 +218,8 @@ public class ProductService {
 
                 Product p = switch (type.toLowerCase()) {
                     case "perishable" -> new PerishableProduct(id, name, stock, price, LocalDate.parse(rs.getString("expiry_date")));
-                    case "digital" -> new DigitalProduct(id, name, price, new URL(rs.getString("url")), rs.getString("vendor_name"));
-                    case "bundle" -> new BundleProduct(id, name, price, getItemsForBundle(id));
+                    case "digital" -> new DigitalProduct(id, name, price, stock, new URL(rs.getString("url")), rs.getString("vendor_name"));
+                    case "bundle" -> new BundleProduct(id, name, price,stock, getItemsForBundle(id));
                     default -> new NonPerishableProduct(id, name, price, stock);
                 };
 
@@ -246,8 +247,8 @@ public class ProductService {
 
                 return switch (type.toLowerCase()) {
                     case "perishable" -> new PerishableProduct(id, name, stock, price, LocalDate.parse(rs.getString("expiry_date")));
-                    case "digital" -> new DigitalProduct(id, name, price, new URL(rs.getString("url")), rs.getString("vendor_name"));
-                    case "bundle" -> new BundleProduct(id, name, price, getItemsForBundle(id));
+                    case "digital" -> new DigitalProduct(id, name, price, stock, new URL(rs.getString("url")), rs.getString("vendor_name"));
+                    case "bundle" -> new BundleProduct(id, name, price,stock,getItemsForBundle(id));
                     default -> new NonPerishableProduct(id, name, price, stock);
                 };
             }
@@ -257,10 +258,10 @@ public class ProductService {
         return null;
     }
     
-    public static boolean updateStock(String productId, int quantityChange) {
+public static boolean updateStock(String productId, int quantityChange) {
         try (Connection conn = DatabaseConnection.connect();
              PreparedStatement stmt = conn.prepareStatement("UPDATE products SET stock = stock + ? WHERE id = ?")) {
-            stmt.setInt(1, quantityChange); 
+            stmt.setInt(1, quantityChange); // jumlah perubahan stok (positif atau negatif)
             stmt.setString(2, productId);
             int rowsUpdated = stmt.executeUpdate();
             return rowsUpdated > 0;
@@ -268,5 +269,24 @@ public class ProductService {
             System.out.println("Error updating stock: " + e.getMessage());
             return false;
         }
+    }
+    
+
+    public static double getProductPrice(String productId) {
+        String query = "SELECT price FROM products WHERE id = ?";
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, productId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getDouble("price");
+            } else {
+                System.out.println("Product ID not found.");
+                return -1;  // Mengembalikan -1 jika produk tidak ditemukan
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching product price: " + e.getMessage());
+        }
+        return -1;  // Mengembalikan -1 jika terjadi error
     }
 }
