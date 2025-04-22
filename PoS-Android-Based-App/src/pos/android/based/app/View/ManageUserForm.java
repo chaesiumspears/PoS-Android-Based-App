@@ -339,6 +339,22 @@ public class ManageUserForm extends javax.swing.JFrame {
         if (!name.isEmpty() && !email.isEmpty() && !username.isEmpty() && !password.isEmpty() && username.matches(usernameRegex)) {
             try {
                 Connection conn = DatabaseConnection.connect();
+                // pengecekan apakah uda ada username yang terdaftar dengan percis
+                String checkSql = "SELECT COUNT(*) FROM users WHERE username = ?";
+                PreparedStatement checkPs = conn.prepareStatement(checkSql);
+                checkPs.setString(1, username);
+                ResultSet rs = checkPs.executeQuery();
+                rs.next();
+                int count = rs.getInt(1);
+                rs.close();
+                checkPs.close();
+
+                if (count > 0) {
+                    jRegex.setText("username already registered, find another username");
+                    return;
+                }
+
+                // kalo usn belum terdaftar(kondisi lain)
                 String sql = "INSERT INTO users (name, email, username, password, role) VALUES (?, ?, ?, ?, ?)";
                 PreparedStatement ps = conn.prepareStatement(sql);
                 ps.setString(1, name);
@@ -349,7 +365,7 @@ public class ManageUserForm extends javax.swing.JFrame {
 
                 int rows = ps.executeUpdate();
                 if (rows > 0) {
-                    JOptionPane.showMessageDialog(this, "User berhasil ditambahkan!");
+                    JOptionPane.showMessageDialog(this, "user successfully added!");
                     loadUserData();
                 }
 
@@ -361,9 +377,9 @@ public class ManageUserForm extends javax.swing.JFrame {
             }
         } else {
             if (name.isEmpty() || email.isEmpty() || username.isEmpty() || password.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Semua field harus diisi");
+                JOptionPane.showMessageDialog(this, "all fields must be filled");
             } else if (!username.matches(usernameRegex)) {
-                jRegex.setText("Username is invalid");
+                jRegex.setText("username is invalid");
             }
         }
 
@@ -435,7 +451,7 @@ public class ManageUserForm extends javax.swing.JFrame {
             String nameInput = jTextField1.getText();
             String emailInput = jTextField2.getText();
             String usernameInput = jTextField4.getText();
-            String passwordInput = jTextField3.getText(); 
+            String passwordInput = jTextField3.getText();
             String roleInput = radioSuperAdmin.isSelected() ? "super_admin" : "admin";
 
             String name = nameInput.isBlank() ? (String) userTable.getValueAt(selectedRow, 1) : nameInput;

@@ -283,19 +283,42 @@ public class UserForm extends javax.swing.JFrame {
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         // TODO add your handling code here:
-        String usernameRegex = "^(?![_.])^(?!\\d)(?!.*[_.]{2})[a-zA-Z0-9._]{3,20}$";
-        
         String username = jTextField2.getText();
-        if (!username.isBlank() && username.matches(usernameRegex)) {
-            updateSingleField("username", username, userId);
-            loadUserData();
-        } else {
-            if(!username.isBlank()){
-                JOptionPane.showMessageDialog(null, "fulfill the field");
+        String usernameRegex = "^(?![_.])^(?!\\d)(?!.*[_.]{2})[a-zA-Z0-9._]{3,20}$";
+        boolean usernameExists = false;
+
+        try {
+            Connection conn = DatabaseConnection.connect();
+            // pengecekan apakah uda ada username yang terdaftar dengan percis
+            String checkSql = "SELECT COUNT(*) FROM users WHERE username = ?";
+            PreparedStatement checkPs = conn.prepareStatement(checkSql);
+            checkPs.setString(1, username);
+            ResultSet rs = checkPs.executeQuery();
+            rs.next();
+            int count = rs.getInt(1);
+            rs.close();
+            checkPs.close();
+
+            if (count > 0) {
+                jRegex.setText("username already registered, find another username");
+                return;
             }
-            else if (!username.matches(usernameRegex)){
-                jRegex.setText("Username is invalid");
+
+            if (!username.isBlank() && username.matches(usernameRegex)) {
+                updateSingleField("username", username, userId);
+                loadUserData();
+            } else {
+                if (!username.isBlank()) {
+                    JOptionPane.showMessageDialog(null, "fulfill the field");
+                } else if (!username.matches(usernameRegex)) {
+                    jRegex.setText("Username is invalid");
+                }
             }
+            conn.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Gagal menambahkan user: " + e.toString());
         }
     }//GEN-LAST:event_jButton3ActionPerformed
 
