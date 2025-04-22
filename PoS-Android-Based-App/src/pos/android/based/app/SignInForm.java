@@ -148,19 +148,23 @@ public class SignInForm extends javax.swing.JFrame {
                 ResultSet rs = ps.executeQuery();
                 
                 if (rs.next()) {
-                    String role = rs.getString("role"); 
-                    // ke homepage
-                    MainUI main = new MainUI(username,role);
+                    String role = rs.getString("role");
+                    String name = rs.getString("name");
+                    String email = rs.getString("email");
+
+                    AuthLogService.log(username, name, email, role, "logged in successfully");
+
+                    MainUI main = new MainUI(username, role);
                     main.setVisible(true);
                     main.pack();
                     main.setLocationRelativeTo(null);
                     main.setDefaultCloseOperation(MainUI.EXIT_ON_CLOSE);
                     this.dispose();
-                    
                 } else {
+                    // log gagal hanya dengan username, lainnya kosong
+                    AuthLogService.log(username, "", "", "", "fail");
                     jLabel8.setText("Your password or username is invalid");
                 }
-
                 conn.close();
             } else {
                 jLabel8.setText("Database connection failed");

@@ -7,7 +7,11 @@ package pos.android.based.app.View;
 import java.net.MalformedURLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
+import pos.android.based.app.AuthLogService;
+import pos.android.based.app.SignInForm;
 import pos.android.based.app.View.ProductForm;
+
 
 /**
  *
@@ -27,6 +31,9 @@ public class MainUI extends javax.swing.JFrame {
         initComponents();
         
         ManageBtn.setVisible("admin".equalsIgnoreCase(userRole));
+        
+        this.setSize(1280, 720);
+        this.setLocationRelativeTo(null);
     }
 
     /**
@@ -55,7 +62,7 @@ public class MainUI extends javax.swing.JFrame {
 
         homepagePanel.setBackground(new java.awt.Color(0, 0, 0));
         homepagePanel.setMinimumSize(new java.awt.Dimension(1280, 720));
-        homepagePanel.setPreferredSize(new java.awt.Dimension(660, 560));
+        homepagePanel.setPreferredSize(new java.awt.Dimension(1280, 720));
         homepagePanel.setLayout(null);
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
@@ -158,6 +165,11 @@ public class MainUI extends javax.swing.JFrame {
         logoutBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         logoutBtn.setDebugGraphicsOptions(javax.swing.DebugGraphics.FLASH_OPTION);
         logoutBtn.setPreferredSize(new java.awt.Dimension(100, 70));
+        logoutBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                logoutBtnActionPerformed(evt);
+            }
+        });
         homepagePanel.add(logoutBtn);
         logoutBtn.setBounds(440, 310, 130, 90);
 
@@ -208,6 +220,20 @@ public class MainUI extends javax.swing.JFrame {
         this.dispose();
     }//GEN-LAST:event_ManageBtnActionPerformed
 
+    private void logoutBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logoutBtnActionPerformed
+        // Logging ke database
+        AuthLogService.log(loggedInUsername, null, null, null, "logged out");
+
+        // Kembali ke SignInForm
+        SignInForm signIn = new SignInForm();
+        signIn.setVisible(true);
+        signIn.pack();
+        signIn.setLocationRelativeTo(null);
+        signIn.setDefaultCloseOperation(SignInForm.EXIT_ON_CLOSE);
+
+        this.dispose();
+    }//GEN-LAST:event_logoutBtnActionPerformed
+    
     /**
      * @param args the command line arguments
      */
