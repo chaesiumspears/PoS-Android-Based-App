@@ -16,18 +16,16 @@ import java.time.LocalDateTime;
 public class ProductActivityLog {
     private int logId;
     private String productId;
-    private String productName;
     private String actionType;
     private String actionDetails;
     private String performedBy;
     private LocalDateTime performedAt;
 
-    public ProductActivityLog(int logId, String productId, String productName, 
+    public ProductActivityLog(int logId, String productId,
                             String actionType, String actionDetails, 
                             String performedBy, LocalDateTime performedAt) {
         this.logId = logId;
         this.productId = productId;
-        this.productName = productName;
         this.actionType = actionType;
         this.actionDetails = actionDetails;
         this.performedBy = performedBy;
@@ -37,7 +35,6 @@ public class ProductActivityLog {
     // Getter methods
     public int getLogId() { return logId; }
     public String getProductId() { return productId; }
-    public String getProductName() { return productName; }
     public String getActionType() { return actionType; }
     public String getActionDetails() { return actionDetails; }
     public String getPerformedBy() { return performedBy; }
