@@ -4,6 +4,14 @@
  */
 package pos.android.based.app.View;
 
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+import pos.android.based.app.DatabaseConnection;
+
+import java.sql.Connection;          
+import java.sql.PreparedStatement;    
+import java.sql.ResultSet;            
+
 /**
  *
  * @author Desi
@@ -15,6 +23,7 @@ public class AuthLogUIFix extends javax.swing.JFrame {
      */
     public AuthLogUIFix() {
         initComponents();
+        loadLogs();
     }
 
     /**
@@ -43,20 +52,20 @@ public class AuthLogUIFix extends javax.swing.JFrame {
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null}
             },
             new String [] {
-                "ID", "Username", "Login Time", "Status"
+                "Id", "Username", "Name", "Email", "Login Time", "Status"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.Integer.class, java.lang.Object.class, java.lang.Object.class, java.lang.Boolean.class
+                java.lang.Integer.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false
+                false, false, false, true, true, true
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -79,18 +88,18 @@ public class AuthLogUIFix extends javax.swing.JFrame {
                         .addGap(457, 457, 457)
                         .addComponent(jLabel1))
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(400, 400, 400)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(411, Short.MAX_VALUE))
+                        .addGap(234, 234, 234)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 788, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(245, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(33, 33, 33)
                 .addComponent(jLabel1)
-                .addGap(35, 35, 35)
+                .addGap(36, 36, 36)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(120, Short.MAX_VALUE))
+                .addContainerGap(119, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -147,6 +156,33 @@ public class AuthLogUIFix extends javax.swing.JFrame {
             }
         });
     }
+    
+    private void loadLogs() {
+    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+    model.setRowCount(0);
+    
+    String query = "SELECT id, username, name, email, login_time, status FROM login_logs ORDER BY login_time DESC";
+
+    try (Connection conn = DatabaseConnection.connect();
+         PreparedStatement stmt = conn.prepareStatement(query);
+         ResultSet rs = stmt.executeQuery()) {
+
+        while (rs.next()) {
+            model.addRow(new Object[]{
+                rs.getInt("id"),
+                rs.getString("username"),
+                rs.getString("name"),
+                rs.getString("email"),
+                rs.getTimestamp("login_time"),
+                rs.getString("status")
+            });
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this, "Gagal memuat log.");
+    }
+}
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
