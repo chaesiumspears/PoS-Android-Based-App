@@ -13,8 +13,8 @@ import java.util.List;
 public class BundleProduct extends Product {
     private List<Product> items;
 
-    public BundleProduct(String id, String name, double price, List<Product> items) {
-        super(id, name, price, "bundle");
+    public BundleProduct(String id, String name, double price, int stock, List<Product> items) {
+        super(id, name,stock, price, "bundle");
         this.items = items;
     }
 

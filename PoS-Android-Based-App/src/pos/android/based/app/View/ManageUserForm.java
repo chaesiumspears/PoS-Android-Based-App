@@ -10,6 +10,8 @@ import java.sql.PreparedStatement;
 import javax.swing.JOptionPane;
 import pos.android.based.app.passwordHash;
 import java.sql.ResultSet;
+import pos.android.based.app.View.MainUI;
+
 
 /**
  *
@@ -22,8 +24,13 @@ public class ManageUserForm extends javax.swing.JFrame {
     public static String username;
     public static String password;
     public static String role;
+    private String loggedInUsername;
+    private String userRole;
+    
 
-    public ManageUserForm() {
+    public ManageUserForm(String username, String role) {
+        this.loggedInUsername = username;
+        this.userRole = role;
         initComponents();
         loadUserData();
     }
@@ -85,7 +92,7 @@ public class ManageUserForm extends javax.swing.JFrame {
         jLabel5 = new javax.swing.JLabel();
         jTextField4 = new javax.swing.JTextField();
         jRegex = new javax.swing.JLabel();
-        jBack1 = new javax.swing.JButton();
+        BackButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(null);
@@ -212,17 +219,17 @@ public class ManageUserForm extends javax.swing.JFrame {
         jRegex.setForeground(new java.awt.Color(255, 0, 51));
         jRegex.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
 
-        jBack1.setBackground(new java.awt.Color(17, 19, 21));
-        jBack1.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jBack1.setText("Back");
-        jBack1.addMouseListener(new java.awt.event.MouseAdapter() {
+        BackButton.setBackground(new java.awt.Color(17, 19, 21));
+        BackButton.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        BackButton.setText("Back");
+        BackButton.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jBack1MouseClicked(evt);
+                BackButtonMouseClicked(evt);
             }
         });
-        jBack1.addActionListener(new java.awt.event.ActionListener() {
+        BackButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jBack1ActionPerformed(evt);
+                BackButtonActionPerformed(evt);
             }
         });
 
@@ -277,14 +284,14 @@ public class ManageUserForm extends javax.swing.JFrame {
                 .addGap(38, 38, 38))
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(16, 16, 16)
-                .addComponent(jBack1)
+                .addComponent(BackButton)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(17, 17, 17)
-                .addComponent(jBack1)
+                .addComponent(BackButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel6)
                 .addGap(18, 18, 18)
@@ -429,13 +436,15 @@ public class ManageUserForm extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButton3ActionPerformed
 
-    private void jBack1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jBack1MouseClicked
+    private void BackButtonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_BackButtonMouseClicked
         // TODO add your handling code here:
-    }//GEN-LAST:event_jBack1MouseClicked
+    }//GEN-LAST:event_BackButtonMouseClicked
 
-    private void jBack1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBack1ActionPerformed
+    private void BackButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BackButtonActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jBack1ActionPerformed
+        new MainUI(loggedInUsername, userRole).setVisible(true);
+        dispose();
+    }//GEN-LAST:event_BackButtonActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // TODO add your handling code here:
@@ -534,13 +543,13 @@ public class ManageUserForm extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new ManageUserForm().setVisible(true);
+                new ManageUserForm("demoUser", "admin").setVisible(true);
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jBack1;
+    private javax.swing.JButton BackButton;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
