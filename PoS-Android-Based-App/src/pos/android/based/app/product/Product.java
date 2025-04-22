@@ -20,11 +20,6 @@ public class Product {
         this.type = type;
     }
 
-    public Product(String id, String name, double price, String type) {
-        this(id, name, null, price, type);
-    }
-
-
     public String getId() {
         return id;
     }
@@ -37,8 +32,9 @@ public class Product {
         return price;
     }
 
+
     public Integer getStock() {
-        return stock;
+        return (stock !=null)?stock:0;
     }
 
     public String getType() {
