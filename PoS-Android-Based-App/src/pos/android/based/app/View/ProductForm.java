@@ -73,10 +73,26 @@ private final ProductService ProductService = new ProductService();
                 String[] bundleInfo = promptBundleDetails(dialog);
                 if (bundleInfo == null) return;
                 String namaBundle = bundleInfo[0];
-                double hargaBundle = Double.parseDouble(bundleInfo[1]);          
+                double hargaBundle = Double.parseDouble(bundleInfo[1]); 
+                //stock bundle
+                String stokStr = JOptionPane.showInputDialog(dialog, "Bundle stock:");
+                int bundleStock;
+                if (stokStr == null || stokStr.trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(dialog, "Select Products for BundleStock should not be empty.");
+                return;
+                }
+                try {
+                bundleStock = Integer.parseInt(stokStr.trim());
+                   if (bundleStock <= 0) throw new NumberFormatException();
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(dialog, "Stok is invalid.");
+                    ex.printStackTrace();
+                    return;
+                }
+              
                 boolean confirmed = showBundlePreview(namaBundle, hargaBundle, selectedItems);
                 if (!confirmed) return;
-                confirmAndSaveBundle(namaBundle, hargaBundle, selectedItems, dialog);
+                confirmAndSaveBundle(namaBundle, hargaBundle, bundleStock, selectedItems, dialog);
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(dialog, "An error occurred:" + ex.getMessage());
                 ex.printStackTrace();
@@ -88,9 +104,9 @@ private final ProductService ProductService = new ProductService();
         dialog.setVisible(true);
         }
     
-    private void confirmAndSaveBundle(String namaBundle, double hargaBundle, List<Product> items, JDialog dialog) {
+    private void confirmAndSaveBundle(String namaBundle, double hargaBundle,int bundleStock, List<Product> items, JDialog dialog) {
         try {
-            BundleProduct bundle = new BundleProduct(null, namaBundle, hargaBundle, items);
+            BundleProduct bundle = new BundleProduct(null, namaBundle, hargaBundle,bundleStock, items);
             boolean success = ProductService.addProduct(bundle);
             if (success) {
                 JOptionPane.showMessageDialog(this, "The bundle was successfully added.");
@@ -204,8 +220,8 @@ private final ProductService ProductService = new ProductService();
     double totalNormalPrice = items.stream().mapToDouble(Product::getPrice).sum();
     int stock = 1;
 
-    BundleProduct bundle = new BundleProduct(null, name, bundlePrice, items);
-    bundle.setStock(stock); // jika kamu ingin menambahkan stok juga
+    BundleProduct bundle = new BundleProduct(null, name, bundlePrice, stock, items);
+    bundle.setStock(stock); 
 
     boolean success = ProductService.addProduct(bundle);
     if (success) {
@@ -581,7 +597,7 @@ private final ProductService ProductService = new ProductService();
                     return;
                 }
                 URL url = new URL(urlStr);
-                newProduct = new DigitalProduct(null, name, price, url, vendor);
+                newProduct = new DigitalProduct(null, name, price, stock, url, vendor);
             }
         }
     } catch (Exception e) {
@@ -709,7 +725,7 @@ private final ProductService ProductService = new ProductService();
                     return;
                 }
                 URL url = new URL(urlStr);
-                updatedProduct = new DigitalProduct(id, name, price, url, vendor);
+                updatedProduct = new DigitalProduct(id, name, price, stock, url, vendor);
                 updatedProduct.setStock(stock);
             }
             default -> {
