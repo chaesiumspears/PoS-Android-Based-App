@@ -107,7 +107,7 @@ private final ProductService ProductService = new ProductService();
     private void confirmAndSaveBundle(String namaBundle, double hargaBundle,int bundleStock, List<Product> items, JDialog dialog) {
         try {
             BundleProduct bundle = new BundleProduct(null, namaBundle, hargaBundle,bundleStock, items);
-            boolean success = ProductService.addProduct(bundle);
+            boolean success = ProductService.addProduct(bundle, loggedInUsername);
             if (success) {
                 JOptionPane.showMessageDialog(this, "The bundle was successfully added.");
                 loadProduct();
@@ -223,7 +223,7 @@ private final ProductService ProductService = new ProductService();
     BundleProduct bundle = new BundleProduct(null, name, bundlePrice, stock, items);
     bundle.setStock(stock); 
 
-    boolean success = ProductService.addProduct(bundle);
+    boolean success = ProductService.addProduct(bundle, loggedInUsername);
     if (success) {
         JOptionPane.showMessageDialog(this, "Bundles were successfully added!\\nTotal:" + totalNormalPrice + "\nDiskon: " + (totalNormalPrice - bundlePrice));
         try {
@@ -319,6 +319,11 @@ private final ProductService ProductService = new ProductService();
         productTable.setSelectionBackground(new java.awt.Color(204, 204, 204));
         productTable.setSelectionForeground(new java.awt.Color(0, 0, 0));
         productTable.setShowGrid(false);
+        productTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                productTableMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(productTable);
 
         addButton.setBackground(new java.awt.Color(250, 193, 217));
@@ -605,7 +610,7 @@ private final ProductService ProductService = new ProductService();
         return;
     }
 
-    boolean success = ProductService.addProduct(newProduct);
+    boolean success = ProductService.addProduct(newProduct, loggedInUsername);
     if (success) {
         JOptionPane.showMessageDialog(this, "Produk berhasil ditambahkan!");
         try {
@@ -659,7 +664,7 @@ private final ProductService ProductService = new ProductService();
             "Confirm Delete", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
             try {
-                boolean deleted = ProductService.deleteProduct(productId);
+                boolean deleted = ProductService.deleteProduct(productId, loggedInUsername);
             if (deleted) {
                 JOptionPane.showMessageDialog(this, "Product deleted successfully!");
                 loadProduct(); 
@@ -734,7 +739,7 @@ private final ProductService ProductService = new ProductService();
             }
         }
 
-        boolean success = ProductService.updateProduct(updatedProduct);
+        boolean success = ProductService.updateProduct(updatedProduct, loggedInUsername);
         if (success) {
             JOptionPane.showMessageDialog(this, "Product updated successfully!");
             clearProductForm();
@@ -776,6 +781,38 @@ private final ProductService ProductService = new ProductService();
         new MainUI(loggedInUsername, userRole).setVisible(true);
         dispose();
     }//GEN-LAST:event_BackButtonActionPerformed
+
+    private void productTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_productTableMouseClicked
+        // TODO add your handling code here:
+        int selectedRow = productTable.getSelectedRow();
+    if (selectedRow != -1) {
+        String id = productTable.getValueAt(selectedRow, 0).toString();
+        Product p = ProductService.getProductById(id);
+
+        productNameField.setText(p.getName());
+        productPriceField.setText(String.valueOf(p.getPrice()));
+        productStockField.setText(String.valueOf(p.getStock()));
+        productTypeComboBox.setSelectedItem(capitalize(p.getType())); // helper method
+
+        if (p instanceof DigitalProduct digital) {
+            urlField.setText(digital.getUrl().toString());
+            vendorField.setText(digital.getVendorName());
+        } else {
+            urlField.setText("");
+            vendorField.setText("");
+        }
+
+        if (p instanceof PerishableProduct perish) {
+            expiryDateChooser.setDate(java.sql.Date.valueOf(perish.getExpiryDate()));
+        } else {
+            expiryDateChooser.setDate(null);
+        }
+    }
+    }//GEN-LAST:event_productTableMouseClicked
+
+    private String capitalize(String s) {
+    return s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
+    }
 
   
 

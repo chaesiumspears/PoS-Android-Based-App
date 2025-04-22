@@ -20,6 +20,11 @@ public class Product {
         this.stock = stock;
         this.type = type;
     }
+    
+    public void setId(String id) {
+    this.id = id;
+}
+
 
     // Getter method untuk mengakses properti privat
     public String getId() {

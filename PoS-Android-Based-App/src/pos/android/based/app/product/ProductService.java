@@ -32,53 +32,73 @@ public class ProductService {
     }
 
   //menambahkan produk ke database 
-   public static boolean addProduct(Product p) {
+public static boolean addProduct(Product p, String performedBy) {
     if (p instanceof BundleProduct bundle) {
-        return addBundle(bundle);
+        return addBundle(bundle, performedBy);
     }
+
     String query = "INSERT INTO products(id, name, price, stock, type, expiry_date, url, vendor_name) " +
                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-    //koneksi database dan matikan auto-commit agar bisa rollback jika ada error.
+
     try (Connection conn = DatabaseConnection.connect()) {
         conn.setAutoCommit(false);
-        //prefix P
+
+        // 1. Generate ID dan set ke objek
         String id = generateProductID(conn, "P");
+        p.setId(id);
+
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            // 2. Field dasar semua produk
             stmt.setString(1, id);
             stmt.setString(2, p.getName());
             stmt.setDouble(3, p.getPrice());
-            stmt.setInt(4, p.getStock() != null ? p.getStock() : 0);
+            stmt.setInt(4, (p.getStock() != null) ? p.getStock() : 0);
             stmt.setString(5, p.getType());
-            //jika perishable
-            if (p instanceof PerishableProduct perish) {
-                stmt.setDate(6, java.sql.Date.valueOf(perish.getExpiryDate()));
-            } else {
-                stmt.setNull(6, java.sql.Types.DATE);
-            }
-            //jika digital
-            if (p instanceof DigitalProduct digital) {
-                stmt.setString(7, digital.getUrl().toString());
-                stmt.setString(8, digital.getVendorName());
-            } else {
-                stmt.setNull(7, java.sql.Types.VARCHAR);
-                stmt.setNull(8, java.sql.Types.VARCHAR);
-            }
+
+            // 3. Field khusus: expiry, url, vendor
+            setProductSpecificFields(stmt, p);
+
             stmt.executeUpdate();
         }
+
         conn.commit();
+
+        // 4. Logging
+        ProductActivityLogService.logAction(id, "input", "Added new product: " + p.getName(), performedBy);
         return true;
+
     } catch (Exception e) {
         System.out.println("Add product error: " + e.getMessage());
-        e.printStackTrace(); // Jika terjadi error, cetak stack trace dan kembalikan false
+        e.printStackTrace();
         return false;
     }
+}
+
+private static void setProductSpecificFields(PreparedStatement stmt, Product p) throws SQLException {
+    // Expiry (kolom ke-6)
+    if (p instanceof PerishableProduct perish) {
+        stmt.setDate(6, java.sql.Date.valueOf(perish.getExpiryDate()));
+    } else {
+        stmt.setNull(6, java.sql.Types.DATE);
     }
+
+    // URL dan Vendor (kolom ke-7 dan 8)
+    if (p instanceof DigitalProduct digital) {
+        stmt.setString(7, digital.getUrl().toString());
+        stmt.setString(8, digital.getVendorName());
+    } else {
+        stmt.setNull(7, java.sql.Types.VARCHAR);
+        stmt.setNull(8, java.sql.Types.VARCHAR);
+    }
+}
+
    
    //Menambahkan produk bundle dan komponennya ke dalam database.
-    private static boolean addBundle(BundleProduct p) {
+    private static boolean addBundle(BundleProduct p, String performedBy) {
         try (Connection conn = DatabaseConnection.connect()) {
             conn.setAutoCommit(false);
             String bundleID = generateProductID(conn, "B");
+            p.setId(bundleID);
             //hitung total harga normal
             double normalPrice = p.getItems().stream().mapToDouble(Product::getPrice).sum();
             //hitung jumlah total item
@@ -123,6 +143,10 @@ public class ProductService {
                 stmt.executeUpdate();
             }
             conn.commit();
+            
+            // log
+            ProductActivityLogService.logAction(bundleID, "input", "Added new bundle: " + p.getName(), performedBy);
+            
             return true;
         } catch (Exception e) {
             System.err.println("Error saat menambahkan bundle: " + e.getMessage());
@@ -132,7 +156,7 @@ public class ProductService {
     }
 
     //update data produk berdasarkan ID
-    public boolean updateProduct(Product p) {
+    public boolean updateProduct(Product p, String performedBy) {
     String sql = "UPDATE products SET name = ?, price = ?, stock = ?, type = ?, expiry_date = ?, url = ?, vendor_name = ? WHERE id = ?"; //SQL
     try (Connection conn = DatabaseConnection.connect();
          PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -157,27 +181,60 @@ public class ProductService {
         }
         //ID produk sebagai acuan update (WHERE id = ?)
         stmt.setString(8, p.getId());
-        return stmt.executeUpdate() > 0; //// true jika ada baris yang berhasil diupdate
+        boolean updated = stmt.executeUpdate() > 0; //// true jika ada baris yang berhasil diupdate
+        if (updated) {
+            ProductActivityLogService.logAction(p.getId(), "update", "Updated product: " + p.getName(), performedBy);
+        }
+        return updated;
     } catch (SQLException e) {
         e.printStackTrace();
         return false;
     }
 }
 
-    //Menghapus produk dari database berdasarkan ID.
-    public static boolean deleteProduct(String id) {
-        String sql = "DELETE FROM products WHERE id = ?";
-        try (Connection conn = DatabaseConnection.connect();
-            PreparedStatement stmt = conn.prepareStatement(sql)) {
-            // // Set ID produk yang ingin dihapus pada posisi parameter ke-1
-            stmt.setString(1, id);
-            int affectedRows = stmt.executeUpdate(); // eksekusi perintah delete
-            return affectedRows > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+public static boolean deleteProduct(String id, String performedBy) {
+    try (Connection conn = DatabaseConnection.connect()) {
+        conn.setAutoCommit(false);
+
+        // 1. Log aktivitas delete (catat bahwa produk dihapus)
+        ProductActivityLogService.logAction(id, "delete", "Deleted product with ID: " + id, performedBy);
+
+        // 2. (Opsional) Arsipkan log lama ke tabel arsip (boleh diaktifkan kalau memang ingin backup log lama)
+        PreparedStatement archiveLogs = conn.prepareStatement("""
+            INSERT INTO product_activity_log_archive
+            SELECT * FROM product_activity_log WHERE product_id = ?
+        """);
+        archiveLogs.setString(1, id);
+        archiveLogs.executeUpdate();
+
+        // 3. Jangan hapus dari product_activity_log (kita ingin menyimpan riwayatnya)
+
+        // 4. Hapus relasi bundle
+        PreparedStatement clearBundleItems = conn.prepareStatement("DELETE FROM bundle_items WHERE bundle_id = ? OR item_id = ?");
+        clearBundleItems.setString(1, id);
+        clearBundleItems.setString(2, id);
+        clearBundleItems.executeUpdate();
+
+        PreparedStatement clearBundleSummary = conn.prepareStatement("DELETE FROM bundle_summary WHERE bundle_id = ?");
+        clearBundleSummary.setString(1, id);
+        clearBundleSummary.executeUpdate();
+
+        // 5. Hapus produk dari tabel products
+        PreparedStatement deleteProduct = conn.prepareStatement("DELETE FROM products WHERE id = ?");
+        deleteProduct.setString(1, id);
+        int affected = deleteProduct.executeUpdate();
+
+        conn.commit();
+        return affected > 0;
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
     }
+}
+
+
+
     
     //Mendapatkan semua item dalam satu bundle, Membuat ulang objek produk dari database.
     private static List<Product> getItemsForBundle(String bundleId) throws SQLException, MalformedURLException {
@@ -295,4 +352,18 @@ public class ProductService {
         }
         return -1;  // Mengembalikan -1 jika terjadi error
     }
+    
+    public static boolean isProductExists(String productId) {
+    String query = "SELECT 1 FROM products WHERE id = ?";
+    try (Connection conn = DatabaseConnection.connect();
+         PreparedStatement stmt = conn.prepareStatement(query)) {
+        stmt.setString(1, productId);
+        ResultSet rs = stmt.executeQuery();
+        return rs.next();  // true jika produk ditemukan
+    } catch (SQLException e) {
+        e.printStackTrace(); // debug error
+        return false;
+    }
+}
+
 }
