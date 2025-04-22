@@ -1,0 +1,399 @@
+package pos.android.based.app.View;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+import pos.android.based.app.transactions.TransactionDAO;
+import pos.android.based.app.transactions.TransactionItem;
+import pos.android.based.app.transactions.Transactions;
+
+public class PurchaseUI extends javax.swing.JFrame {
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final String today = LocalDate.now().format(formatter);
+
+    private PurchaseTransaction purchaseTransaction;
+    public PurchaseUI() {
+        initComponents();
+        dateTextField.setText(today);
+        purchaseBtn.addActionListener(e -> processPurchase());
+        cashTextField.addActionListener(e -> calculateChange());
+    }
+
+    private void calculateChange() {
+        try {
+            BigDecimal total = new BigDecimal(totalTextField.getText());
+            BigDecimal cash = new BigDecimal(cashTextField.getText());
+
+            if (cash.compareTo(total) < 0) {
+                JOptionPane.showMessageDialog(this, "Cash tidak mencukupi!");
+                return;
+            }
+
+            BigDecimal change = cash.subtract(total);
+            chageTextField.setText(change.toString());
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Input tidak valid: " + ex.getMessage());
+        }
+    }
+
+    private void processPurchase() {
+        try {
+            int transactionId = Integer.parseInt(transactionIdTextField.getText());
+            BigDecimal total = new BigDecimal(totalTextField.getText());
+            BigDecimal cash = new BigDecimal(cashTextField.getText());
+
+            if (cash.compareTo(total) < 0) {
+                JOptionPane.showMessageDialog(this, "Cash tidak mencukupi!");
+                return;
+            }
+
+            BigDecimal change = cash.subtract(total);
+            chageTextField.setText(change.toString());
+
+            Transactions transaction = TransactionDAO.getTransactionById(transactionId);
+
+            if (transaction == null) {
+                JOptionPane.showMessageDialog(this, "Transaksi tidak ditemukan.");
+                return;
+            }
+
+            if (!transaction.getStatus().equalsIgnoreCase(Transactions.STATUS_NOT_PAID)) {
+                JOptionPane.showMessageDialog(this, "Transaksi sudah diproses.");
+                return;
+            }
+
+            transaction.setTransactionDate(LocalDate.now());
+            transaction.setStatus(Transactions.STATUS_PAID);
+
+            boolean success = TransactionDAO.updateTransactionStatus(transactionId, Transactions.STATUS_PAID);
+
+            if (success) {
+                updateStockAfterPurchase(transaction);
+                statusTextField.setText(Transactions.STATUS_PAID);
+                JOptionPane.showMessageDialog(this, 
+                    "Transaksi berhasil dibayar.\nKembalian: " + change);
+            } else {
+                JOptionPane.showMessageDialog(this, "Gagal memperbarui status transaksi.");
+            }
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan: " + e.getMessage());
+        }
+    }
+    
+    public void setTransactionId(int transactionId) {
+        transactionIdTextField.setText(String.valueOf(transactionId));
+    }
+    
+    public void setTransactionId(String transactionId) {
+        transactionIdTextField.setText(transactionId);
+    }
+
+    public void setTotal(String total) {
+        totalTextField.setText(total);
+    }
+
+    public void setDate(String date) {
+        dateTextField.setText(date);
+    }
+    
+    public void setItemsFromList(List<TransactionItem> items) {
+        DefaultTableModel model = (DefaultTableModel) daftarBelanjaTable.getModel();
+        model.setRowCount(0); // clear isi tabel
+
+        BigDecimal total = BigDecimal.ZERO;
+        StringBuilder builder = new StringBuilder();
+
+        for (TransactionItem item : items) {
+            // Tambahkan ke tabel
+            model.addRow(new Object[]{
+                item.getProductId(),
+                item.getQuantity(),
+                item.getUnitPrice(),
+                item.getSubTotal()
+            });
+
+            // Hitung total dan tampilkan di TextArea
+            builder.append("Produk ID: ").append(item.getProductId())
+                   .append(", Qty: ").append(item.getQuantity())
+                   .append(", Subtotal: ").append(item.getSubTotal())
+                   .append("\n");
+
+            total = total.add(item.getSubTotal());
+        }
+
+        itemsTextField.setText(builder.toString());
+        totalTextField.setText(total.toString());
+        statusTextField.setText("unpaid"); 
+    }
+    
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextArea1 = new javax.swing.JTextArea();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jTextArea2 = new javax.swing.JTextArea();
+        jPanel1 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jPanel2 = new javax.swing.JPanel();
+        transactionIdLabel = new javax.swing.JLabel();
+        dateLabel = new javax.swing.JLabel();
+        totalLabel = new javax.swing.JLabel();
+        cashLabel = new javax.swing.JLabel();
+        chageLabel = new javax.swing.JLabel();
+        statusLabel = new javax.swing.JLabel();
+        itemsLabel = new javax.swing.JLabel();
+        itemsTextField = new javax.swing.JTextField();
+        totalTextField = new javax.swing.JTextField();
+        dateTextField = new javax.swing.JTextField();
+        transactionIdTextField = new javax.swing.JTextField();
+        cashTextField = new javax.swing.JTextField();
+        chageTextField = new javax.swing.JTextField();
+        statusTextField = new javax.swing.JTextField();
+        purchaseBtn = new javax.swing.JButton();
+
+        jTextArea1.setColumns(20);
+        jTextArea1.setRows(5);
+        jScrollPane1.setViewportView(jTextArea1);
+
+        jTextArea2.setColumns(20);
+        jTextArea2.setRows(5);
+        jScrollPane2.setViewportView(jTextArea2);
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+
+        jPanel1.setBackground(new java.awt.Color(0, 0, 0));
+
+        jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jLabel1.setForeground(new java.awt.Color(251, 193, 217));
+        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel1.setText("Purchase Transaction");
+
+        jPanel2.setBackground(new java.awt.Color(0, 0, 0));
+        jPanel2.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+
+        transactionIdLabel.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        transactionIdLabel.setForeground(new java.awt.Color(250, 193, 217));
+        transactionIdLabel.setText("Transaction ID");
+
+        dateLabel.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        dateLabel.setForeground(new java.awt.Color(250, 193, 217));
+        dateLabel.setText("Date");
+
+        totalLabel.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        totalLabel.setForeground(new java.awt.Color(250, 193, 217));
+        totalLabel.setText("Total");
+
+        cashLabel.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        cashLabel.setForeground(new java.awt.Color(250, 193, 217));
+        cashLabel.setText("Cash");
+
+        chageLabel.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        chageLabel.setForeground(new java.awt.Color(250, 193, 217));
+        chageLabel.setText("Change");
+
+        statusLabel.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        statusLabel.setForeground(new java.awt.Color(250, 193, 217));
+        statusLabel.setText("Status");
+
+        itemsLabel.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        itemsLabel.setForeground(new java.awt.Color(250, 193, 217));
+        itemsLabel.setText("Items");
+
+        itemsTextField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                itemsTextFieldActionPerformed(evt);
+            }
+        });
+
+        dateTextField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dateTextFieldActionPerformed(evt);
+            }
+        });
+
+        cashTextField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cashTextFieldActionPerformed(evt);
+            }
+        });
+
+        purchaseBtn.setBackground(new java.awt.Color(51, 51, 51));
+        purchaseBtn.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        purchaseBtn.setForeground(new java.awt.Color(250, 193, 217));
+        purchaseBtn.setText("Purchase");
+        purchaseBtn.setToolTipText("");
+        purchaseBtn.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        purchaseBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                purchaseBtnActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(cashLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(itemsLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(totalLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(chageLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(statusLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(transactionIdLabel))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addComponent(transactionIdTextField)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(dateLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(dateTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 157, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(39, 39, 39))
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel2Layout.createSequentialGroup()
+                                        .addComponent(statusTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(purchaseBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(chageTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(totalTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(itemsTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 489, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(cashTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addGap(0, 76, Short.MAX_VALUE))))))
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(transactionIdLabel)
+                    .addComponent(dateLabel)
+                    .addComponent(dateTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(transactionIdTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(49, 49, 49)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(itemsLabel)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(itemsTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 281, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(totalLabel)
+                    .addComponent(totalTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cashLabel)
+                    .addComponent(cashTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(chageLabel)
+                    .addComponent(chageTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(48, 48, 48)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(statusLabel)
+                    .addComponent(statusTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(purchaseBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(12, 12, 12))
+        );
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(240, 240, 240)
+                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(27, 27, 27)
+                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(28, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(22, 22, 22)
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void cashTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cashTextFieldActionPerformed
+        calculateChange();
+    }//GEN-LAST:event_cashTextFieldActionPerformed
+
+    private void purchaseBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_purchaseBtnActionPerformed
+        processPurchase();
+    }//GEN-LAST:event_purchaseBtnActionPerformed
+
+    private void itemsTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemsTextFieldActionPerformed
+
+    }//GEN-LAST:event_itemsTextFieldActionPerformed
+
+    private void dateTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dateTextFieldActionPerformed
+        dateTextField.setText(today);
+    }//GEN-LAST:event_dateTextFieldActionPerformed
+
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new PurchaseUI().setVisible(true);
+            }
+        });
+    }
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel cashLabel;
+    private javax.swing.JTextField cashTextField;
+    private javax.swing.JLabel chageLabel;
+    private javax.swing.JTextField chageTextField;
+    private javax.swing.JLabel dateLabel;
+    private javax.swing.JTextField dateTextField;
+    private javax.swing.JLabel itemsLabel;
+    private javax.swing.JTextField itemsTextField;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JTextArea jTextArea1;
+    private javax.swing.JTextArea jTextArea2;
+    private javax.swing.JButton purchaseBtn;
+    private javax.swing.JLabel statusLabel;
+    private javax.swing.JTextField statusTextField;
+    private javax.swing.JLabel totalLabel;
+    private javax.swing.JTextField totalTextField;
+    private javax.swing.JLabel transactionIdLabel;
+    private javax.swing.JTextField transactionIdTextField;
+    // End of variables declaration//GEN-END:variables
+}
