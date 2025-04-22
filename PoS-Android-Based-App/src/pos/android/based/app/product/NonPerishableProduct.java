@@ -11,8 +11,9 @@ package pos.android.based.app.product;
 
 
 public class NonPerishableProduct extends Product {
+    //konstruktor untuk produk non-perishable, memanggil konstruktor superclass dan menyetel tipe produk menjadi "non"
     public NonPerishableProduct(String id, String name, double price, int stock) {
-        super(id, name, stock, price, "non");
+        super(id, name, stock, price, "non-perishable");
     }
 }
 
