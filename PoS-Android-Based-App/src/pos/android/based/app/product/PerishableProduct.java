@@ -11,13 +11,14 @@ package pos.android.based.app.product;
 import java.time.LocalDate;
 
 public class PerishableProduct extends Product {
+    //atribut untuk produk kadaluarsa
     private LocalDate expiryDate;
-
+    //konstruktor unruk inisialisasi produk perishable, memanggil konstruktor superclass dengan tipe perishable
     public PerishableProduct(String id, String name, int stock, double price, LocalDate expiryDate) {
         super(id, name, stock, price, "perishable"); 
         this.expiryDate = expiryDate;
     }
-
+    //Getter untuk mengambil expire date
     public LocalDate getExpiryDate() {
         return expiryDate;
     }
