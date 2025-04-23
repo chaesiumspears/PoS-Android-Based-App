@@ -47,6 +47,8 @@ public class SignInForm extends javax.swing.JFrame {
         getContentPane().setLayout(null);
 
         jPanel1.setBackground(new java.awt.Color(17, 19, 21));
+        jPanel1.setMaximumSize(new java.awt.Dimension(660, 560));
+        jPanel1.setMinimumSize(new java.awt.Dimension(0, 0));
         jPanel1.setPreferredSize(new java.awt.Dimension(660, 560));
 
         jLabel4.setFont(new java.awt.Font("Myanmar Text", 1, 42)); // NOI18N
@@ -123,11 +125,11 @@ public class SignInForm extends javax.swing.JFrame {
                 .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 15, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(8, 8, 8)
                 .addComponent(buttton_signIn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(226, Short.MAX_VALUE))
+                .addContainerGap(272, Short.MAX_VALUE))
         );
 
         getContentPane().add(jPanel1);
-        jPanel1.setBounds(0, 0, 660, 560);
+        jPanel1.setBounds(0, 0, 660, 606);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
