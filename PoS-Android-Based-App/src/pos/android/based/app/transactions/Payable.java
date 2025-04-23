@@ -1,13 +1,10 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package pos.android.based.app.transactions;
 
-/**
- *
- * @author Asus
- */
-public class Payable {
-    
+import java.math.BigDecimal;
+
+public interface Payable {
+    void processTransaction();
+    void serializeTransaction();
+    BigDecimal calculateTotal(); // Tambahkan ini!
 }
+
