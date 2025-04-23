@@ -31,7 +31,7 @@ public class TransactionService {
     }
 
     // Method to create a new transaction and store it in the database
-    public boolean createTransaction(List<Product> products, List<Integer> quantities, double totalAmount) {
+    public boolean createTransaction(List<Product> products, List<Integer> quantities, double totalAmount, String loggedInUsername) {
         String insertTransactionSQL = "INSERT INTO transactions (total_amount, transaction_date) VALUES (?, ?)";
         String insertTransactionItemSQL = "INSERT INTO transaction_items (transaction_id, product_id, quantity, price) VALUES (?, ?, ?, ?)";
 
@@ -66,6 +66,7 @@ public class TransactionService {
             }
 
             conn.commit();
+            TransactionLogService.logTransaction(transactionId, "checkout", loggedInUsername, "Transaction completed with total " + totalAmount);
             return true;
         } catch (SQLException e) {
             System.out.println("Error creating transaction: " + e.getMessage());
