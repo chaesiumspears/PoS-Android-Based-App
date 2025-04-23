@@ -28,10 +28,8 @@ public class MainUI extends javax.swing.JFrame {
     public MainUI(String username, String role) {
         this.loggedInUsername = username;
         this.userRole = role;
-        initComponents();
-        
-        ManageBtn.setVisible("admin".equalsIgnoreCase(userRole));
-        
+        initComponents();    
+        ManageBtn.setVisible(true);    
         this.setSize(1280, 720);
         this.setLocationRelativeTo(null);
     }
