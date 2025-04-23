@@ -1,6 +1,7 @@
 package pos.android.based.app.View;
 
 import java.math.BigDecimal;
+import java.net.MalformedURLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -9,14 +10,17 @@ import javax.swing.table.DefaultTableModel;
 import pos.android.based.app.transactions.PurchaseTransaction;
 import pos.android.based.app.transactions.TransactionDAO;
 import pos.android.based.app.transactions.TransactionItem;
+import pos.android.based.app.transactions.TransactionLogService;
 import pos.android.based.app.transactions.Transactions;
 
 public class PurchaseUI extends javax.swing.JFrame {
+    private String loggedInUsername;
+    private String userRole;
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final String today = LocalDate.now().format(formatter);
     private javax.swing.JTable daftarBelanjaTable;
 
-    public PurchaseUI() {
+    public PurchaseUI(String username, String role) throws MalformedURLException {
         initComponents();
         dateTextField.setText(today);
         purchaseBtn.addActionListener(e -> processPurchase());
@@ -66,9 +70,19 @@ public class PurchaseUI extends javax.swing.JFrame {
                 BigDecimal change = cash.subtract(transaction.getTotalPrice());
                 chageTextField.setText(change.toString());
                 
+                purchaseTransaction.serializeTransaction();
+                
+                TransactionLogService.logTransaction(
+                transaction.getTransactionId(),
+                        "checkout",
+                        loggedInUsername,
+                        "Transaction paid successfully. Total: " + transaction.getTotalPrice()
+                );
+                
                 JOptionPane.showMessageDialog(this, 
                     "Transaksi berhasil dibayar.\nKembalian: " + change);
-            } else {
+                this.dispose();this.dispose();
+                new MainUI(loggedInUsername, userRole).setVisible(true);
                 JOptionPane.showMessageDialog(this, "Pembayaran gagal.");
             }
 
@@ -397,7 +411,11 @@ public class PurchaseUI extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new PurchaseUI().setVisible(true);
+                            try {
+                new PurchaseUI("admin", "admin").setVisible(true); // test data
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             }
         });
     }

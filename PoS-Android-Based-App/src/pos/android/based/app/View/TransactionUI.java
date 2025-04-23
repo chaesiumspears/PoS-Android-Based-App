@@ -1,6 +1,7 @@
 package pos.android.based.app.View;
 
 import java.math.BigDecimal;
+import java.net.MalformedURLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,12 +21,17 @@ import pos.android.based.app.transactions.TransactionItem;
 
 
 public class TransactionUI extends javax.swing.JFrame {
+    
+    private String loggedInUsername;
+    private String userRole;
 
     private Map<Integer, Transactions> transactionMap = new HashMap<>();
     private List<TransactionItem> cartItems = new ArrayList<>();
     private TransactionDAO transactionDAO; 
     
-    public TransactionUI() {
+    public TransactionUI(String username, String role) throws MalformedURLException {
+        this.loggedInUsername = username;
+        this.userRole = role;
         initComponents();
         new ProductService();
         transactionDAO = new TransactionDAO();
@@ -34,8 +40,8 @@ public class TransactionUI extends javax.swing.JFrame {
     }
 
     private void setupTableListener() {
-        DefaultTableModel model = (DefaultTableModel) daftarBelanjaTable.getModel();
-        model.addTableModelListener(e -> {
+    DefaultTableModel model = (DefaultTableModel) daftarBelanjaTable.getModel();
+    model.addTableModelListener(e -> {
     int row = e.getFirstRow();
     int column = e.getColumn();
 
@@ -77,16 +83,21 @@ public class TransactionUI extends javax.swing.JFrame {
         });
     }
         
-    private void showPurchaseUI(Transactions transaction) {
-        PurchaseUI purchaseUI = new PurchaseUI();
+private void showPurchaseUI(Transactions transaction) {
+    try {
+        PurchaseUI purchaseUI = new PurchaseUI(loggedInUsername, userRole);
         purchaseUI.setTransactionId(transaction.getTransactionId());
         BigDecimal totalPrice = transaction.calculateTotalPrice();
         purchaseUI.setTotal(totalPrice); 
         purchaseUI.setItemsFromList(transaction.getItems());
         purchaseUI.setDate(LocalDate.now().toString());
         purchaseUI.setVisible(true);
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this, "Gagal membuka Purchase UI: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
     }
-    
+}
+
     private void refreshItemTable() {
         DefaultTableModel model = (DefaultTableModel) daftarBelanjaTable.getModel();
         model.setRowCount(0);
@@ -121,6 +132,7 @@ public class TransactionUI extends javax.swing.JFrame {
         refundBtn = new javax.swing.JButton();
         transactionIdLabel = new javax.swing.JLabel();
         transactionIdTextField = new javax.swing.JTextField();
+        logTransactionBtn = new javax.swing.JButton();
 
         purchaseBtn1.setBackground(new java.awt.Color(251, 193, 217));
         purchaseBtn1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
@@ -176,7 +188,7 @@ public class TransactionUI extends javax.swing.JFrame {
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(idLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(38, 38, 38)
-                        .addComponent(idTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 531, Short.MAX_VALUE))
+                        .addComponent(idTextField))
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(priceLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(38, 38, 38)
@@ -300,6 +312,18 @@ public class TransactionUI extends javax.swing.JFrame {
             }
         });
 
+        logTransactionBtn.setBackground(new java.awt.Color(251, 193, 217));
+        logTransactionBtn.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        logTransactionBtn.setForeground(new java.awt.Color(31, 31, 31));
+        logTransactionBtn.setText("Log");
+        logTransactionBtn.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        logTransactionBtn.setPreferredSize(new java.awt.Dimension(70, 30));
+        logTransactionBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                logTransactionBtnActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout TransactionPanelLayout = new javax.swing.GroupLayout(TransactionPanel);
         TransactionPanel.setLayout(TransactionPanelLayout);
         TransactionPanelLayout.setHorizontalGroup(
@@ -312,6 +336,8 @@ public class TransactionUI extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(transactionIdTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(logTransactionBtn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
                         .addComponent(addToCartBtn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addComponent(checkoutBtn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -321,7 +347,7 @@ public class TransactionUI extends javax.swing.JFrame {
                     .addGroup(TransactionPanelLayout.createSequentialGroup()
                         .addGroup(TransactionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jScrollPane1))
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 618, Short.MAX_VALUE))
                         .addGap(23, 23, 23))))
         );
         TransactionPanelLayout.setVerticalGroup(
@@ -330,16 +356,17 @@ public class TransactionUI extends javax.swing.JFrame {
                 .addGap(26, 26, 26)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 329, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 281, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(TransactionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(TransactionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(checkoutBtn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(addToCartBtn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(refundBtn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(transactionIdLabel))
+                        .addComponent(transactionIdLabel)
+                        .addComponent(logTransactionBtn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(transactionIdTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(15, 15, 15))
+                .addGap(51, 51, 51))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -416,8 +443,14 @@ public class TransactionUI extends javax.swing.JFrame {
     }//GEN-LAST:event_purchaseBtn1ActionPerformed
 
     private void refundBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refundBtnActionPerformed
-        RefundUI refundUI = new RefundUI();
-        refundUI.setVisible(true);
+      try {
+    RefundUI refundUI = new RefundUI(loggedInUsername, userRole);
+    refundUI.setVisible(true);
+} catch (MalformedURLException e) {
+    e.printStackTrace();
+    JOptionPane.showMessageDialog(this, "Gagal membuka RefundUI: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+}
+
     }//GEN-LAST:event_refundBtnActionPerformed
 
     private void addToCartBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addToCartBtnActionPerformed
@@ -484,9 +517,25 @@ public class TransactionUI extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_transactionIdTextFieldActionPerformed
 
+    private void logTransactionBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logTransactionBtnActionPerformed
+        // TODO add your handling code here:
+        try {
+            TransactionLogUI logUI = new TransactionLogUI(loggedInUsername, userRole);
+            logUI.setVisible(true);                         
+            this.dispose();                                  
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Gagal membuka Transaction Log UI: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+    }//GEN-LAST:event_logTransactionBtnActionPerformed
+
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(() -> {
-            new TransactionUI().setVisible(true);
+            try {
+                new TransactionUI("admin", "admin").setVisible(true); // test data
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         });
     }
     
@@ -500,6 +549,7 @@ public class TransactionUI extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JButton logTransactionBtn;
     private javax.swing.JLabel nameLabel;
     private javax.swing.JTextField nameTextField;
     private javax.swing.JLabel priceLabel;

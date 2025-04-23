@@ -4,20 +4,28 @@
  */
 package pos.android.based.app.View;
 
+import java.net.MalformedURLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import javax.swing.JOptionPane;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import pos.android.based.app.transactions.TransactionDAO;
 import pos.android.based.app.transactions.TransactionItem;
+import pos.android.based.app.transactions.TransactionLogService;
 import pos.android.based.app.transactions.Transactions;
 
 public class RefundUI extends javax.swing.JFrame {
+    private String loggedInUsername;
+    private String userRole;
 
     private final TransactionDAO transactionDAO;
     
-    public RefundUI() {
+    public RefundUI(String username, String role) throws MalformedURLException  {
+        this.loggedInUsername = username;
+        this.userRole = role;
         initComponents();
         
         transactionDAO = new TransactionDAO();
@@ -144,10 +152,21 @@ public class RefundUI extends javax.swing.JFrame {
             
             if (statusUpdated && stockUpdated) {
                 statusTextField.setText(Transactions.STATUS_CANCELLED);
+                
+                TransactionLogService.logTransaction(
+                    transactionId,
+                    "refund",
+                    loggedInUsername,
+                    "Refund processed by user: " + loggedInUsername
+                );
+                
                 JOptionPane.showMessageDialog(this, 
                     "Refund processed successfully!", 
                     "Success", 
                     JOptionPane.INFORMATION_MESSAGE);
+                TransactionLogService.logTransaction(transactionId, "refund", loggedInUsername, "Refund processed by user: " + loggedInUsername);
+                this.dispose();
+                new MainUI(loggedInUsername, userRole).setVisible(true);
             } else {
                 JOptionPane.showMessageDialog(this, 
                     "Failed to complete refund. Please check system logs.", 
@@ -346,36 +365,17 @@ public class RefundUI extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
+    java.awt.EventQueue.invokeLater(new Runnable() {
+        public void run() {
+            try {
+                new RefundUI("admin", "admin").setVisible(true); // test data
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(RefundUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(RefundUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(RefundUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(RefundUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new RefundUI().setVisible(true);
-            }
-        });
+    });
     }
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel dateLabel;

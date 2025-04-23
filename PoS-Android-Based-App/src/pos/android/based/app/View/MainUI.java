@@ -194,6 +194,15 @@ public class MainUI extends javax.swing.JFrame {
 
     private void TransactionsBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TransactionsBtnActionPerformed
         // TODO add your handling code here:
+         try {
+        TransactionUI transactionUI = new TransactionUI(loggedInUsername, userRole);
+        transactionUI.setVisible(true);
+        transactionUI.setLocationRelativeTo(null);
+        transactionUI.setDefaultCloseOperation(javax.swing.JFrame.DISPOSE_ON_CLOSE);
+         } catch (MalformedURLException e) {
+        Logger.getLogger(MainUI.class.getName()).log(Level.SEVERE, "Gagal membuka TransactionUI", e);
+        JOptionPane.showMessageDialog(this, "Gagal membuka halaman transaksi: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+    }
     }//GEN-LAST:event_TransactionsBtnActionPerformed
 
     private void homeBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_homeBtnActionPerformed
@@ -202,7 +211,7 @@ public class MainUI extends javax.swing.JFrame {
 
     private void usersBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_usersBtnActionPerformed
         // TODO add your handling code here:
-        UserForm us = new UserForm();
+        UserForm us = new UserForm(loggedInUsername);
         us.setVisible(true);
         us.pack();
         us.setLocationRelativeTo(null);

@@ -19,6 +19,7 @@ import pos.android.based.app.passwordHash;
 public class UserForm extends javax.swing.JFrame {
 
     private String usernameLogin;
+    private String roleLogin;
     private int userId;
 
     /**
@@ -31,6 +32,7 @@ public class UserForm extends javax.swing.JFrame {
     public UserForm(String usernameLogin) {
         initComponents();
         this.usernameLogin = usernameLogin;
+        this.roleLogin = roleLogin;
         loadUserData();   // panggil method untuk isi text field
     }
 
@@ -343,6 +345,8 @@ public class UserForm extends javax.swing.JFrame {
 
     private void jBack2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jBack2ActionPerformed
         // TODO add your handling code here:
+        new MainUI(usernameLogin,roleLogin).setVisible(true);
+        dispose();
     }//GEN-LAST:event_jBack2ActionPerformed
 
     /**

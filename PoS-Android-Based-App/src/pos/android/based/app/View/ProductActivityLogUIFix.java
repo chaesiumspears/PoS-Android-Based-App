@@ -14,11 +14,16 @@ import pos.android.based.app.product.ProductActivityLogService;
  * @author Desi
  */
 public class ProductActivityLogUIFix extends javax.swing.JFrame {
+    
+    private String loggedInUsername;
+    private String userRole;
 
     /**
      * Creates new form ProductActivityLogUIFix
      */
-    public ProductActivityLogUIFix() {
+    public ProductActivityLogUIFix(String username, String role) {
+        this.loggedInUsername = username;
+        this.userRole = role;
         initComponents();
         loadActivityLogs(null);
     }
@@ -191,7 +196,11 @@ public class ProductActivityLogUIFix extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new ProductActivityLogUIFix().setVisible(true);
+                try {
+                new ProductActivityLogUIFix("admin", "admin").setVisible(true); // test data
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             }
         });
     }
