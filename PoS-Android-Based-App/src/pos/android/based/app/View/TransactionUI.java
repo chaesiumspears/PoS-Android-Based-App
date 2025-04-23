@@ -2,83 +2,68 @@ package pos.android.based.app.View;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import pos.android.based.app.View.PurchaseUI;
+import pos.android.based.app.View.RefundUI;
 
 import pos.android.based.app.product.Product;
 import pos.android.based.app.product.ProductService;
-import pos.android.based.app.transactions.*;
-import pos.android.based.app.View.PurchaseUI;
+import pos.android.based.app.transactions.PurchaseTransaction;
+import pos.android.based.app.transactions.Transactions;
+import pos.android.based.app.transactions.TransactionDAO;
+import pos.android.based.app.transactions.TransactionItem;
+
 
 public class TransactionUI extends javax.swing.JFrame {
 
     private Map<Integer, Transactions> transactionMap = new HashMap<>();
-    private ProductService productService;
-    private static int currentTransactionId = 1; 
-    
+    private List<TransactionItem> cartItems = new ArrayList<>();
     private TransactionDAO transactionDAO; 
     
     public TransactionUI() {
         initComponents();
-        productService = new ProductService();
+        new ProductService();
         transactionDAO = new TransactionDAO();
         setupTableListener();
+        transactionIdTextField.setText("");
     }
 
     private void setupTableListener() {
-    DefaultTableModel model = (DefaultTableModel) daftarBelanjaTable.getModel();
-        model.addTableModelListener(e -> {
-            int row = e.getFirstRow();
-            int column = e.getColumn();
-
-            if (column == 4) { // Kolom Qty
-                try {
-                    int qty = Integer.parseInt(model.getValueAt(row, 4).toString());
-                    BigDecimal price = new BigDecimal(model.getValueAt(row, 3).toString());
-                    model.setValueAt(price.multiply(BigDecimal.valueOf(qty)), row, 5);
-
-                    
-                    int transactionId = Integer.parseInt(transactionIdTextField.getText());
-                    Transactions transaction = transactionMap.get(transactionId);
-
-                    if (transaction != null) {
-                        String productId = model.getValueAt(row, 1).toString();
-                        for (TransactionItem item : transaction.getItems()) {
-                            if (item.getProductId().equals(productId)) {
-                                item.setQuantity(qty);
-                                item.setUnitPrice(price); 
-                                break;
-                            }
-                       }
-                    }
-                } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(this, "Qty harus berupa angka!", "Input Error", JOptionPane.ERROR_MESSAGE);
-                    model.setValueAt(1, row, 4);
-                    double price = Double.parseDouble(model.getValueAt(row, 3).toString());
-                    model.setValueAt(price, row, 5);
-                }
-            }
-        });
-    }
-
-    private void updateTotalPrice() {
         DefaultTableModel model = (DefaultTableModel) daftarBelanjaTable.getModel();
-        BigDecimal totalPrice = BigDecimal.ZERO;
+        model.addTableModelListener(e -> {
+    int row = e.getFirstRow();
+    int column = e.getColumn();
 
-        for (int i = 0; i < model.getRowCount(); i++) {
-            int quantity = (int) model.getValueAt(i, 4);
-            BigDecimal unitPrice = (BigDecimal) model.getValueAt(i, 3);
-            BigDecimal subTotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
-            model.setValueAt(subTotal, i, 5);  // Update subtotal in the table
-            totalPrice = totalPrice.add(subTotal);
+    if (column == 4) { // Kolom Qty
+        int qty; // deklarasi di luar try
+        try {
+            qty = Integer.parseInt(model.getValueAt(row, 4).toString());
+            double price = Double.parseDouble(model.getValueAt(row, 3).toString());
+            model.setValueAt(qty * price, row, 5);
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Qty harus berupa angka!", "Input Error", JOptionPane.ERROR_MESSAGE);
+            qty = 1; // assign default value jika error
+            model.setValueAt(1, row, 4);
+            double price = Double.parseDouble(model.getValueAt(row, 3).toString());
+            model.setValueAt(price, row, 5);
+        }
+
+        String productId = model.getValueAt(row, 1).toString();
+        for (TransactionItem item : cartItems) {
+            if (item.getProductId().equals(productId)) {
+                item.setQuantity(qty);
+                item.calculateSubTotal();
+                break;
+            }
         }
     }
-
-    private int generateTransactionId() {
-        return currentTransactionId++;
-    }
+});
+}
     
     private void addItemToCart(TransactionItem item, Product product) {
         DefaultTableModel model = (DefaultTableModel) daftarBelanjaTable.getModel();
@@ -91,21 +76,29 @@ public class TransactionUI extends javax.swing.JFrame {
                 item.getSubTotal()
         });
     }
-    
-    private void refreshTransactionTable() {
-        DefaultTableModel model = (DefaultTableModel) daftarBelanjaTable.getModel();
-        model.setRowCount(0);
-    }
-    
+        
     private void showPurchaseUI(Transactions transaction) {
         PurchaseUI purchaseUI = new PurchaseUI();
         purchaseUI.setTransactionId(transaction.getTransactionId());
-        purchaseUI.setTotal(String.valueOf(transaction.calculateTotalPrice()));
-        purchaseUI.setDate(""); // Admin input manual
+        BigDecimal totalPrice = transaction.calculateTotalPrice();
+        purchaseUI.setTotal(totalPrice); 
+        purchaseUI.setItemsFromList(transaction.getItems());
+        purchaseUI.setDate(LocalDate.now().toString());
         purchaseUI.setVisible(true);
     }
     
-    
+    private void refreshItemTable() {
+        DefaultTableModel model = (DefaultTableModel) daftarBelanjaTable.getModel();
+        model.setRowCount(0);
+        
+        for (int i = 0; i < cartItems.size(); i++) {
+            TransactionItem item = cartItems.get(i);
+            Product product = ProductService.getProductById(item.getProductId());
+            if (product != null) {
+                addItemToCart(item, product);
+            }
+        }
+}   
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -368,34 +361,45 @@ public class TransactionUI extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void checkoutBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkoutBtnActionPerformed
-        String transactionIdStr = transactionIdTextField.getText();
-        if (transactionIdStr.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No transaction to purchase.");
-            return;
-        }
+    if (cartItems.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Cart is empty. Please add items first.", "Empty Cart", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-        int transactionId = Integer.parseInt(transactionIdStr);
-        Transactions transaction = transactionMap.get(transactionId);
+    // Generate new transaction ID
+    int transactionId = TransactionDAO.getNewTransactionId();
 
-        if (transaction == null || transaction.getItems().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Cart is empty.");
-            return;
-        }
 
-        transaction.setStatus("unpaid"); 
+    // Create new transaction
+    Transactions transaction = new Transactions(
+        transactionId,
+        new ArrayList<>(cartItems),
+        LocalDate.now(),
+        Transactions.STATUS_NOT_PAID
+    );
 
-        boolean success = transactionDAO.addTransaction(transaction);
-        if (success) {
-            showPurchaseUI(transaction);
-        } else {
-            JOptionPane.showMessageDialog(this, "Transaction failed to save.");
-        }
+    // Calculate total price
+    transaction.setTotalPrice(transaction.calculateTotalPrice());
+
+    // Save transaction
+    TransactionDAO.saveTransaction(transaction);
+
+    // Update UI
+    transactionIdTextField.setText(String.valueOf(transactionId));
+    transactionMap.put(transactionId, transaction);
+
+    // Show purchase UI for payment
+    showPurchaseUI(transaction);
+
+    // Clear cart for next transaction
+    cartItems.clear();
+    ((DefaultTableModel) daftarBelanjaTable.getModel()).setRowCount(0);
     }//GEN-LAST:event_checkoutBtnActionPerformed
 
     private void idTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_idTextFieldActionPerformed
         String productId = idTextField.getText().trim();
         if (!productId.isEmpty()) {
-            Product product = productService.getProductById(productId);
+            Product product = ProductService.getProductById(productId);
             if (product != null) {
                 nameTextField.setText(product.getName());
                 priceTextField.setText(String.valueOf(product.getPrice()));
@@ -412,7 +416,8 @@ public class TransactionUI extends javax.swing.JFrame {
     }//GEN-LAST:event_purchaseBtn1ActionPerformed
 
     private void refundBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refundBtnActionPerformed
-        
+        RefundUI refundUI = new RefundUI();
+        refundUI.setVisible(true);
     }//GEN-LAST:event_refundBtnActionPerformed
 
     private void addToCartBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addToCartBtnActionPerformed
@@ -421,59 +426,58 @@ public class TransactionUI extends javax.swing.JFrame {
         String priceText = priceTextField.getText().trim();
 
         if (id.isEmpty() || name.isEmpty() || priceText.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please enter product details.");
+            JOptionPane.showMessageDialog(this, "Please enter complete product details.", "Incomplete Data", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         BigDecimal price;
         try {
-            price = new BigDecimal(priceText); 
+            price = new BigDecimal(priceText);
+            if (price.compareTo(BigDecimal.ZERO) <= 0) {
+                JOptionPane.showMessageDialog(this, "Price must be greater than 0.", "Invalid Price", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Invalid price.");
+            JOptionPane.showMessageDialog(this, "Invalid price format.", "Invalid Price", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        // Get product from the service
-        Product product = productService.getProductById(id);
+        Product product = ProductService.getProductById(id);
         if (product == null) {
-            JOptionPane.showMessageDialog(this, "Product not found in the system.");
+            JOptionPane.showMessageDialog(this, "Product not found in the system.", "Product Not Found", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        // Validate stock
         if (product.getStock() <= 0) {
-            JOptionPane.showMessageDialog(this, "Product is out of stock.");
+            JOptionPane.showMessageDialog(this, "Product is out of stock.", "Out of Stock", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        int transactionId;
-        if (transactionIdTextField.getText().isEmpty()) {
-            transactionId = generateTransactionId();
-            transactionIdTextField.setText(String.valueOf(transactionId));
-            Transactions newTransaction = new Transactions(transactionId);
-            newTransaction.setTransactionDate(LocalDate.now()); // Set transaction date
-            transactionMap.put(transactionId, newTransaction);
-        } else {
-            transactionId = Integer.parseInt(transactionIdTextField.getText());
-            if (!transactionMap.containsKey(transactionId)) {
-                Transactions newTransaction = new Transactions(transactionId);
-                newTransaction.setTransactionDate(LocalDate.now()); // Set transaction date
-                transactionMap.put(transactionId, newTransaction);
+        // Check if product already in cart
+        for (TransactionItem item : cartItems) {
+            if (item.getProductId().equals(id)) {
+                // If exists, increase quantity
+                item.setQuantity(item.getQuantity() + 1);
+                item.calculateSubTotal();
+                refreshItemTable();
+                clearProductFields();
+                return;
             }
         }
 
-        Transactions transaksi = transactionMap.get(transactionId);
+        // If new item, add to cart
+        TransactionItem newItem = new TransactionItem(id, 1, price.doubleValue());
+        newItem.calculateSubTotal();
+        cartItems.add(newItem);
+        refreshItemTable();
+        clearProductFields();
+    }                                            
 
-        TransactionItem item = new TransactionItem(product.getId(), 1, price);
-        transaksi.addItem(item);
-
-        // Add item to cart table
-        addItemToCart(item, product);
-
-        // Clear input fields
+    private void clearProductFields() {
         idTextField.setText("");
         nameTextField.setText("");
         priceTextField.setText("");
+        idTextField.requestFocus();
     }//GEN-LAST:event_addToCartBtnActionPerformed
 
     private void transactionIdTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_transactionIdTextFieldActionPerformed
@@ -481,10 +485,8 @@ public class TransactionUI extends javax.swing.JFrame {
     }//GEN-LAST:event_transactionIdTextFieldActionPerformed
 
     public static void main(String args[]) {
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new TransactionUI().setVisible(true);
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            new TransactionUI().setVisible(true);
         });
     }
     

@@ -93,7 +93,7 @@
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Group type="102" attributes="0">
-                          <Component id="transactionIdTextField1" max="32767" attributes="0"/>
+                          <Component id="dateTextField" max="32767" attributes="0"/>
                           <EmptySpace min="-2" pref="245" max="-2" attributes="0"/>
                       </Group>
                       <Group type="102" alignment="0" attributes="0">
@@ -101,7 +101,7 @@
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="dateLabel" min="-2" pref="84" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="dateTextField" min="-2" pref="110" max="-2" attributes="0"/>
+                          <Component id="refundDateTextField" min="-2" pref="110" max="-2" attributes="0"/>
                           <EmptySpace min="-2" pref="39" max="-2" attributes="0"/>
                       </Group>
                       <Group type="102" alignment="0" attributes="0">
@@ -123,13 +123,13 @@
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="transactionIdLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="dateLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="dateTextField" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="refundDateTextField" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="transactionIdTextField" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace type="unrelated" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="dateLabel2" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="transactionIdTextField1" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="dateTextField" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
@@ -214,7 +214,7 @@
         </Component>
         <Component class="javax.swing.JTextField" name="totalTextField">
         </Component>
-        <Component class="javax.swing.JTextField" name="dateTextField">
+        <Component class="javax.swing.JTextField" name="refundDateTextField">
         </Component>
         <Component class="javax.swing.JTextField" name="transactionIdTextField">
           <Events>
@@ -234,9 +234,9 @@
             <Property name="text" type="java.lang.String" value="Date"/>
           </Properties>
         </Component>
-        <Component class="javax.swing.JTextField" name="transactionIdTextField1">
+        <Component class="javax.swing.JTextField" name="dateTextField">
           <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="transactionIdTextField1ActionPerformed"/>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dateTextFieldActionPerformed"/>
           </Events>
         </Component>
       </SubComponents>

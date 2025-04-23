@@ -3,11 +3,10 @@ package pos.android.based.app.View;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import pos.android.based.app.transactions.PurchaseTransaction;
 import pos.android.based.app.transactions.TransactionDAO;
 import pos.android.based.app.transactions.TransactionItem;
 import pos.android.based.app.transactions.Transactions;
@@ -15,16 +14,20 @@ import pos.android.based.app.transactions.Transactions;
 public class PurchaseUI extends javax.swing.JFrame {
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final String today = LocalDate.now().format(formatter);
+    private javax.swing.JTable daftarBelanjaTable;
 
-    private PurchaseTransaction purchaseTransaction;
     public PurchaseUI() {
         initComponents();
         dateTextField.setText(today);
         purchaseBtn.addActionListener(e -> processPurchase());
         cashTextField.addActionListener(e -> calculateChange());
+        
+        if (daftarBelanjaTable == null) {
+            daftarBelanjaTable = new javax.swing.JTable();
+        }
     }
-
-    private void calculateChange() {
+        
+        private void calculateChange() {
         try {
             BigDecimal total = new BigDecimal(totalTextField.getText());
             BigDecimal cash = new BigDecimal(cashTextField.getText());
@@ -44,46 +47,42 @@ public class PurchaseUI extends javax.swing.JFrame {
     private void processPurchase() {
         try {
             int transactionId = Integer.parseInt(transactionIdTextField.getText());
-            BigDecimal total = new BigDecimal(totalTextField.getText());
             BigDecimal cash = new BigDecimal(cashTextField.getText());
 
-            if (cash.compareTo(total) < 0) {
-                JOptionPane.showMessageDialog(this, "Cash tidak mencukupi!");
-                return;
-            }
-
-            BigDecimal change = cash.subtract(total);
-            chageTextField.setText(change.toString());
-
             Transactions transaction = TransactionDAO.getTransactionById(transactionId);
-
             if (transaction == null) {
                 JOptionPane.showMessageDialog(this, "Transaksi tidak ditemukan.");
                 return;
             }
 
-            if (!transaction.getStatus().equalsIgnoreCase(Transactions.STATUS_NOT_PAID)) {
-                JOptionPane.showMessageDialog(this, "Transaksi sudah diproses.");
-                return;
-            }
-
-            transaction.setTransactionDate(LocalDate.now());
-            transaction.setStatus(Transactions.STATUS_PAID);
-
-            boolean success = TransactionDAO.updateTransactionStatus(transactionId, Transactions.STATUS_PAID);
-
-            if (success) {
-                updateStockAfterPurchase(transaction);
+            // Create PurchaseTransaction instance
+            PurchaseTransaction purchaseTransaction = new PurchaseTransaction(transaction.getItems());
+            purchaseTransaction.setTransactionId(transactionId);
+            purchaseTransaction.setTransactionDate(LocalDate.now());
+            
+            // Process payment using PurchaseTransaction
+            if (purchaseTransaction.processPayment(cash)) {
                 statusTextField.setText(Transactions.STATUS_PAID);
+                BigDecimal change = cash.subtract(transaction.getTotalPrice());
+                chageTextField.setText(change.toString());
+                
                 JOptionPane.showMessageDialog(this, 
                     "Transaksi berhasil dibayar.\nKembalian: " + change);
             } else {
-                JOptionPane.showMessageDialog(this, "Gagal memperbarui status transaksi.");
+                JOptionPane.showMessageDialog(this, "Pembayaran gagal.");
             }
 
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Terjadi kesalahan: " + e.getMessage());
         }
+    }
+
+    public void setTransactionData(Transactions transaction) {
+        setTransactionId(transaction.getTransactionId());
+        setDate(transaction.getTransactionDate().toString());
+        setTotal(transaction.getTotalPrice());
+        setItemsFromList(transaction.getItems());
+        statusTextField.setText(transaction.getStatus());
     }
     
     public void setTransactionId(int transactionId) {
@@ -94,8 +93,8 @@ public class PurchaseUI extends javax.swing.JFrame {
         transactionIdTextField.setText(transactionId);
     }
 
-    public void setTotal(String total) {
-        totalTextField.setText(total);
+    public void setTotal(BigDecimal total) {
+        totalTextField.setText(total.toString());
     }
 
     public void setDate(String date) {
@@ -103,14 +102,18 @@ public class PurchaseUI extends javax.swing.JFrame {
     }
     
     public void setItemsFromList(List<TransactionItem> items) {
-        DefaultTableModel model = (DefaultTableModel) daftarBelanjaTable.getModel();
-        model.setRowCount(0); // clear isi tabel
+        DefaultTableModel model = new DefaultTableModel(
+            new Object[][]{},
+            new String[]{"Product ID", "Quantity", "Unit Price", "Subtotal"}
+        );
+        
+        daftarBelanjaTable.setModel(model);
+        model.setRowCount(0);
 
+        StringBuilder itemsText = new StringBuilder();
         BigDecimal total = BigDecimal.ZERO;
-        StringBuilder builder = new StringBuilder();
 
         for (TransactionItem item : items) {
-            // Tambahkan ke tabel
             model.addRow(new Object[]{
                 item.getProductId(),
                 item.getQuantity(),
@@ -118,18 +121,13 @@ public class PurchaseUI extends javax.swing.JFrame {
                 item.getSubTotal()
             });
 
-            // Hitung total dan tampilkan di TextArea
-            builder.append("Produk ID: ").append(item.getProductId())
-                   .append(", Qty: ").append(item.getQuantity())
-                   .append(", Subtotal: ").append(item.getSubTotal())
-                   .append("\n");
-
+            itemsText.append(item.toString()).append("\n");
             total = total.add(item.getSubTotal());
         }
 
-        itemsTextField.setText(builder.toString());
+        itemsTextField.setText(itemsText.toString());
         totalTextField.setText(total.toString());
-        statusTextField.setText("unpaid"); 
+        statusTextField.setText(Transactions.STATUS_NOT_PAID);
     }
     
     @SuppressWarnings("unchecked")
@@ -206,18 +204,6 @@ public class PurchaseUI extends javax.swing.JFrame {
         itemsLabel.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         itemsLabel.setForeground(new java.awt.Color(250, 193, 217));
         itemsLabel.setText("Items");
-
-        itemsTextField.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                itemsTextFieldActionPerformed(evt);
-            }
-        });
-
-        dateTextField.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                dateTextFieldActionPerformed(evt);
-            }
-        });
 
         cashTextField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -350,21 +336,65 @@ public class PurchaseUI extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void cashTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cashTextFieldActionPerformed
-        calculateChange();
+        // TODO add your handling code here:
     }//GEN-LAST:event_cashTextFieldActionPerformed
 
     private void purchaseBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_purchaseBtnActionPerformed
-        processPurchase();
+        String transactionId = transactionIdTextField.getText().trim();
+
+    try {
+        int transactionIdInt = Integer.parseInt(transactionId);
+
+        // Validasi keberadaan transaksi di database
+        Transactions transaction = TransactionDAO.getTransactionById(transactionIdInt);
+        if (transaction == null) {
+            JOptionPane.showMessageDialog(this, "Transaksi tidak ditemukan.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Tampilkan data transaksi
+        setTransactionData(transaction);
+
+        // Cek status
+        if (!transaction.getStatus().equalsIgnoreCase(Transactions.STATUS_NOT_PAID)) {
+            JOptionPane.showMessageDialog(this, "Transaksi sudah diproses atau direfund.", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // Proses pembayaran dilakukan di tombol pembayaran, bukan di sini
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(this, "ID Transaksi tidak valid. Masukkan angka.", "Kesalahan", JOptionPane.ERROR_MESSAGE);
+    }
     }//GEN-LAST:event_purchaseBtnActionPerformed
 
-    private void itemsTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itemsTextFieldActionPerformed
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(PurchaseUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(PurchaseUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(PurchaseUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(PurchaseUI.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
 
-    }//GEN-LAST:event_itemsTextFieldActionPerformed
-
-    private void dateTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dateTextFieldActionPerformed
-        dateTextField.setText(today);
-    }//GEN-LAST:event_dateTextFieldActionPerformed
-
+        /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new PurchaseUI().setVisible(true);

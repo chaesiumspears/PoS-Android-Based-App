@@ -298,16 +298,10 @@
               </Properties>
             </Component>
             <Component class="javax.swing.JTextField" name="itemsTextField">
-              <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="itemsTextFieldActionPerformed"/>
-              </Events>
             </Component>
             <Component class="javax.swing.JTextField" name="totalTextField">
             </Component>
             <Component class="javax.swing.JTextField" name="dateTextField">
-              <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="dateTextFieldActionPerformed"/>
-              </Events>
             </Component>
             <Component class="javax.swing.JTextField" name="transactionIdTextField">
             </Component>
