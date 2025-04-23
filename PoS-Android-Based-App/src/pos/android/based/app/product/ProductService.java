@@ -365,5 +365,18 @@ public static boolean deleteProduct(String id, String performedBy) {
         return false;
     }
 }
+    
+    public static void decreaseStock(String productId, int qty) {
+    String query = "UPDATE products SET stock = stock - ? WHERE id = ?";
+    try (Connection conn = DatabaseConnection.connect();
+         PreparedStatement stmt = conn.prepareStatement(query)) {
+        stmt.setInt(1, qty);
+        stmt.setString(2, productId);
+        stmt.executeUpdate();
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
 
 }
